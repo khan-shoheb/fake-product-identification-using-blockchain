@@ -1,3 +1,137 @@
+/* --- Custom Modern UI Styles for Fake Product Identification DApp --- */
+body {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: 'Roboto', sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+.main-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
+  max-width: 480px;
+  margin: 60px auto 0 auto;
+  padding: 2.5rem 2rem 2rem 2rem;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+.main-card h1 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #4f3c8d;
+  margin-bottom: 0.5rem;
+}
+.main-card p {
+  color: #6c6c6c;
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+}
+.main-card .section-links {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  margin-bottom: 1.5rem;
+}
+.main-card .section-links a {
+  display: block;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.9rem 0;
+  text-decoration: none;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+  transition: background 0.2s, transform 0.2s;
+  box-shadow: 0 2px 8px rgba(118, 75, 162, 0.08);
+}
+.main-card .section-links a:hover {
+  background: linear-gradient(90deg, #764ba2 0%, #667eea 100%);
+  transform: translateY(-2px) scale(1.03);
+}
+.main-card .credits {
+  margin-top: 1.5rem;
+  color: #b0a7c7;
+  font-size: 0.98rem;
+  letter-spacing: 0.5px;
+}
+.navbar {
+  width: 100%;
+  background: rgba(34, 34, 34, 0.98);
+  padding: 0.7rem 0;
+  box-shadow: 0 2px 8px rgba(34,34,34,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 10;
+}
+.navbar .logo {
+  color: #fff;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-right: 2.5rem;
+  text-shadow: 0 2px 8px rgba(118, 75, 162, 0.08);
+}
+.navbar .nav-links {
+  display: flex;
+  gap: 1.5rem;
+}
+.navbar .nav-links a {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s;
+  position: relative;
+}
+.navbar .nav-links a::after {
+  content: '';
+  display: block;
+  width: 0;
+  height: 2px;
+  background: #fff;
+  transition: width 0.2s;
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+}
+.navbar .nav-links a:hover::after {
+  width: 100%;
+}
+.footer {
+  margin-top: auto;
+  width: 100%;
+  background: rgba(34, 34, 34, 0.98);
+  color: #fff;
+  text-align: center;
+  padding: 1rem 0 0.5rem 0;
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+  font-family: 'Roboto', sans-serif;
+  box-shadow: 0 -2px 8px rgba(34,34,34,0.08);
+}
+@media (max-width: 600px) {
+  .main-card {
+    max-width: 98vw;
+    margin: 30px 1vw 0 1vw;
+    padding: 1.2rem 0.5rem 1.2rem 0.5rem;
+  }
+  .navbar .logo {
+    font-size: 1rem;
+    margin-right: 1rem;
+  }
+  .navbar .nav-links {
+    gap: 0.7rem;
+  }
+}
 /*!
  * Bootstrap v4.3.1 (https://getbootstrap.com/)
  * Copyright 2011-2019 The Bootstrap Authors

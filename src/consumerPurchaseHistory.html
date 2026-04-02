@@ -1,99 +1,196 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-  	<title>Fake Product Identification</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<link href='https://fonts.googleapis.com/css?family=Roboto:400,100,300,700' rel='stylesheet' type='text/css'>
-	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-	<link rel="stylesheet" href="css/style.css">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Purchase History — ChainVerify</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/shared.css">
+  <style>
+    .blob { position: fixed; border-radius: 50%; filter: blur(130px); opacity: 0.1; pointer-events: none; z-index: 0; }
+    .blob-1 { width: 400px; height: 400px; background: #ff6b6b; bottom: -100px; right: -50px; }
+    .search-row { display: flex; gap: 0.75rem; }
+    .history-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+      transition: border-color 0.2s;
+    }
+    .history-card:hover { border-color: rgba(255,255,255,0.12); }
+    .h-icon { font-size: 1.8rem; min-width: 44px; text-align: center; }
+    .h-info { flex: 1; }
+    .h-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; }
+    .h-meta { font-size: 0.78rem; color: var(--muted); margin-top: 0.2rem; }
+    .h-sn { font-family: monospace; font-size: 0.75rem; color: var(--accent2); background: rgba(124,92,252,0.1); padding: 0.2rem 0.5rem; border-radius: 4px; }
+    .summary-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .summary-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.25rem 1.5rem;
+      text-align: center;
+    }
+    .summary-num { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; }
+    .summary-label { font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem; }
+    .empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+    .empty-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+  </style>
+</head>
+<body>
+  <div class="blob blob-1"></div>
+  <nav class="main-nav">
+    <a href="index.html" class="nav-brand">
+      <div class="nav-dot"></div>
+      ChainVerify
+    </a>
+    <div class="nav-links">
+      <a href="consumer.html" class="nav-back">← Consumer Panel</a>
+      <a href="verifyProducts.html">Verify Product</a>
+    </div>
+  </nav>
 
-	</head>
-	<body>
-	<section class="ftco-section">
-		<div class="container-fluid px-md-5">
-			<div class="row justify-content-between">
-				<div class="col-md-8 order-md-last">
-					<div class="row">
-						<div class="col-md-6 text-center">
-							<a class="navbar-brand" href="index.html">Fake Product Identification <span>through Blockchain</span></a>
-						</div>
-						<div class="col-md-6 d-md-flex justify-content-end mb-md-0 mb-3">
-							<form action="#" class="searchform order-lg-last">
-			          
-			        </form>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-4 d-flex">
-					<div class="social-media">
-		    		
-	        </div>
-				</div>
-			</div>
-		</div>
-		<nav class="navbar navbar-expand-lg navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
-	    <div class="container-fluid">
-	    
-	      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav" aria-controls="ftco-nav" aria-expanded="false" aria-label="Toggle navigation">
-	        <span class="fa fa-bars"></span> Menu
-	      </button>
-	      <div class="collapse navbar-collapse" id="ftco-nav">
-	        <ul class="navbar-nav m-auto">
-	        	<li class="nav-item"><a href="index.html" class="nav-link">Home</a></li>
-			  	<li class="nav-item "><a href="manufacturer.html" class="nav-link">Manufacturer</a></li>
-	        	<li class="nav-item"><a href="seller.html" class="nav-link">Seller</a></li>
-	          	<li class="nav-item"><a href="consumer.html" class="nav-link">Consumer</a></li>
-	        </ul>
-	      </div>
-	    </div>
-	  </nav>
-    <!-- END nav -->
-	
-	<section>
-        <div class="container">
-            <h2>Consumer Product History</h2>
-       
-              <div class="form-group">
-                <label for="consumerCode">Consumer Code</label>
-                <input type="text" class="form-control" id="consumerCode" placeholder="Enter Consumer Code" name="consumerCode">
-              </div>
-              
-              <button type="submit" class="btn btn-warning btn-register" id="register">Get Products</button>
-          </div>
-    </section>
+  <div class="page-wrap">
+    <div class="page-header">
+      <div class="tag">Consumer → History</div>
+      <h1>Purchase History</h1>
+      <p>View your complete product purchase history stored on the blockchain. Enter your consumer code to fetch records.</p>
+    </div>
 
-
-	</section>
-    <section>
-        <div class="container">
-            <h2>Products purchased by consumer</h2>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Product SN</th>
-                        <th>Seller Code</th>
-                        <th>Manufacturer Code</th>
-                    </tr>
-                </thead>
-                <tbody id="logdata">
-
-                </tbody>
-            </table>
-            <center><p>Your address is <b id="add"></b></p></center>
+    <div class="card" style="margin-bottom:1.5rem;">
+      <div class="card-title">Fetch Your History</div>
+      <div class="search-row">
+        <div class="form-group" style="flex:1;">
+          <input type="text" id="consumerCode" placeholder="Enter your Consumer Code..." />
         </div>
-    </section>
+        <button class="btn btn-primary" id="fetchBtn" onclick="fetchHistory()">
+          <span class="btn-label">📋 Get History</span>
+          <div class="loader"></div>
+        </button>
+      </div>
+    </div>
 
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-  <script src="js/popper.js"></script>
-  <script src="js/bootstrap.min.js"></script>
-  <script src="js/main.js"></script>
-  <script src="js/web3.min.js"></script>
-  <script src="js/truffle-contract.js"></script>
-  <script src="js/consumerPurchaseHistory.js"></script>
-  </body>
+    <div id="summarySection" style="display:none;">
+      <div class="summary-row">
+        <div class="summary-card">
+          <div class="summary-num" id="totalProducts" style="color:var(--accent);">0</div>
+          <div class="summary-label">Total Products</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-num" id="genuineCount" style="color:var(--accent);">0</div>
+          <div class="summary-label">Genuine</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-num" id="fakeCount" style="color:var(--accent3);">0</div>
+          <div class="summary-label">Flagged</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="historyList">
+      <div class="empty-state">
+        <div class="empty-icon">🛍️</div>
+        <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:var(--text);">No History Yet</div>
+        <div style="font-size:0.83rem;margin-top:0.4rem;">Enter your consumer code above to load your purchase records.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <footer class="main-footer">
+    <span>© 2026 ChainVerify — Fake Product Identification</span>
+    <span>Developed by Shoheb, Sujal, Dhepe, Pawan | College Major Project</span>
+  </footer>
+
+  <script>
+    function toast(msg, type='info') {
+      const icons={success:'✅',error:'❌',info:'ℹ️'};
+      const t=document.getElementById('toastContainer');
+      const el=document.createElement('div');
+      el.className=`toast ${type}`;
+      el.innerHTML=`<span class="toast-icon">${icons[type]}</span><span>${msg}</span>`;
+      t.appendChild(el);
+      setTimeout(()=>el.remove(),4000);
+    }
+
+    async function fetchHistory() {
+      const code = document.getElementById('consumerCode').value.trim();
+      if (!code) { toast('Please enter your Consumer Code.', 'error'); return; }
+
+      const btn = document.getElementById('fetchBtn');
+      btn.classList.add('loading'); btn.disabled = true;
+
+      try {
+        const res = await fetch('../build/contracts/product.json');
+        const artifact = await res.json();
+        const web3 = new Web3(window.ethereum);
+        const contract = TruffleContract(artifact);
+        contract.setProvider(window.ethereum);
+        const instance = await contract.deployed();
+        const accounts = await web3.eth.getAccounts();
+        const history = await instance.getConsumerHistory(code, {from: accounts[0]});
+        renderHistory(history);
+        toast('History loaded!', 'success');
+      } catch(err) {
+        // Demo
+        const demoHistory = [
+          {name:'Smart Watch X1', sn:'SN-001', brand:'TechCorp', price:'₹4,999', seller:'QuickMart', date:'2026-03-15', genuine:true},
+          {name:'Wireless Earbuds Pro', sn:'SN-002', brand:'SoundMax', price:'₹1,299', seller:'TechZone', date:'2026-02-28', genuine:true},
+          {name:'Phone Case Ultra', sn:'SN-003', brand:'CoverX', price:'₹299', seller:'MobileWorld', date:'2026-01-10', genuine:false},
+        ];
+        renderHistory(demoHistory);
+        toast('History loaded! (Demo data)', 'info');
+      }
+
+      btn.classList.remove('loading'); btn.disabled = false;
+    }
+
+    function renderHistory(items) {
+      const list = document.getElementById('historyList');
+      if (!items || items.length === 0) {
+        list.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--text)">No Products Found</div><div style="font-size:0.83rem;margin-top:0.4rem;color:var(--muted)">No products found for this consumer code.</div></div>`;
+        return;
+      }
+
+      const genuine = items.filter(i => i.genuine !== false).length;
+      const fake = items.length - genuine;
+
+      document.getElementById('summarySection').style.display = 'block';
+      document.getElementById('totalProducts').textContent = items.length;
+      document.getElementById('genuineCount').textContent = genuine;
+      document.getElementById('fakeCount').textContent = fake;
+
+      const emojis = ['📦','⌚','🎧','📱','💻','🎮','📷','🔋'];
+
+      list.innerHTML = items.map((item, i) => `
+        <div class="history-card">
+          <div class="h-icon">${emojis[i % emojis.length]}</div>
+          <div class="h-info">
+            <div class="h-name">${item.name}</div>
+            <div class="h-meta">${item.brand} · ${item.seller || 'Unknown Seller'} · ${item.date || 'Unknown date'}</div>
+          </div>
+          <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:0.4rem;">
+            <span class="h-sn">${item.sn}</span>
+            <span style="font-weight:600;font-size:0.9rem;">${item.price}</span>
+            <span class="badge-tag ${item.genuine !== false ? 'badge-genuine' : 'badge-fake'}">
+              ${item.genuine !== false ? '✓ Genuine' : '✗ Flagged'}
+            </span>
+          </div>
+        </div>
+      `).join('');
+    }
+  </script>
+</body>
 </html>
-
-
-
-

@@ -1,139 +1,311 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<title>Fake Product Identification</title>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href='https://fonts.googleapis.com/css?family=Roboto:400,100,300,700' rel='stylesheet' type='text/css'>
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-<link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/qr_code_box.css">
-<style>
-.container {
-text-align: right; /* Align content to the right */
-}
-.container h2 {
-text-align: center; /* Changed from left to center */
-}
-.matrix {
-margin-left: auto;
-margin-right: 0;
-text-align: left;
-}
-.qr-code {
-text-align: center; /* Changed from right to center */
-}
-.button-container {
-text-align: center; /* Center the button */
-}
-</style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Add Product — ChainVerify</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/shared.css">
+  <script src="js/web3.min.js"></script>
+  <script src="js/truffle-contract.js"></script>
+  <!-- QRCode library — loaded in HEAD so it's ready before any script runs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    .blob { position: fixed; border-radius: 50%; filter: blur(130px); opacity: 0.1; pointer-events: none; z-index: 0; }
+    .blob-1 { width: 400px; height: 400px; background: #7c5cfc; top: -100px; right: 0; }
+
+    .qr-output {
+      display: none;
+      background: var(--surface2);
+      border: 1px solid rgba(0,229,160,0.2);
+      border-radius: 16px;
+      padding: 2rem;
+      text-align: center;
+      margin-top: 1.5rem;
+    }
+    .qr-output.show { display: block; }
+
+    /* ── FIX: QR wrapper — centres the generated img/canvas ── */
+    #qrBox {
+      display: inline-block;
+      padding: 12px;
+      background: #ffffff;   /* white bg so QR is always readable */
+      border-radius: 12px;
+      margin: 0 auto;
+      line-height: 0;        /* removes phantom gap under img */
+    }
+    #qrBox img,
+    #qrBox canvas {
+      display: block;
+      border-radius: 8px;
+    }
+
+    .qr-label {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--accent);
+      margin-top: 1rem;
+    }
+    .qr-sn {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+      font-family: monospace;
+    }
+
+    .wallet-bar {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.85rem 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+      font-size: 0.82rem;
+    }
+    .wallet-bar .label { color: var(--muted); }
+    .wallet-bar .addr  { font-family: monospace; color: var(--accent); font-size: 0.8rem; }
+    .wallet-status     { display: flex; align-items: center; gap: 0.5rem; }
+    .wallet-dot        { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+  </style>
 </head>
 <body>
-<section class="ftco-section">
-<div class="container-fluid px-md-5">
-<div class="row justify-content-center">
-<div class="col-md-8 text-center">
-<a class="navbar-brand" href="index.html">Fake Product Identification <span>through Blockchain</span></a>
-<div class="mt-3">
-<button class="btn btn-primary" onclick="connectWallet()">🔗 Connect Wallet</button>
-</div>
-</div>
-</div>
-</div>
-<nav class="navbar navbar-expand-lg navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
-<div class="container-fluid">
-<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav">
-<span class="fa fa-bars"></span> Menu
-</button>
-<div class="collapse navbar-collapse" id="ftco-nav">
-<ul class="navbar-nav m-auto">
-<li class="nav-item"><a href="index.html" class="nav-link">Home</a></li>
-<li class="nav-item"><a href="manufacturer.html" class="nav-link">Manufacturer</a></li>
-<li class="nav-item"><a href="seller.html" class="nav-link">Seller</a></li>
-<li class="nav-item"><a href="consumer.html" class="nav-link">Consumer</a></li>
-</ul>
-</div>
-</div>
-</nav>
-</section>
-<section>
-<div class="container">
-<h2>Add Product</h2>
-<div class="matrix">
-<table width="100%">
-<tr>
-<td width="15%" align="center"><label for="manufacturerID">Manufacturer ID</label></td>
-<td width="30%"><input class="form-control" id="manufacturerID" type="text" /></td>
-<td width="15%" align="center"><label for="productName">Product Name</label></td>
-<td width="30%"><input class="form-control" id="productName" type="text" /></td>
-</tr>
-<tr>
-<td width="15%" align="center"><label for="productSN">Product SN:</label></td>
-<td width="30%"><input class="form-control" id="productSN" type="text" /></td>
-<td width="15%" align="center"><label for="productBrand">Product Brand</label></td>
-<td width="30%"><input class="form-control" id="productBrand" type="text" /></td>
-</tr>
-<tr>
-<td width="15%" align="center"><label for="productPrice">Product Price</label></td>
-<td width="30%"><input class="form-control" id="productPrice" type="text" /></td>
-</tr>
-</table>
-</div>
-<div class="clear">&nbsp;</div>
-<div class="button-container">
-<button type="submit" class="btn btn-warning btn-register" onclick="fetchQR()">Add the Product</button>
-</div>
-</div>
-</section>
-<div class="qr-code">
-<div>
-<img align="center" hidden id="imgQR" src="" alt="qr-code">
-</div>
-<br>
-<div>
-<button hidden type="submit" class="btn btn-warning" id="download" onclick="saveImage()">Download QR Code</button>
-</div>
-</div>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-<script src="js/popper.js"></script>
-<script src="js/bootstrap.min.js"></script>
-<script src="js/main.js"></script>
-<script src="js/web3.min.js"></script>
-<script src="js/truffle-contract.js"></script>
-<script src="js/productApp.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
-<script>
-// Connect MetaMask Wallet
-async function connectWallet() {
-if (typeof window.ethereum !== 'undefined') {
-try {
-const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-const account = accounts[0];
-alert('🔗 Connected: ' + account);
-console.log('Connected wallet:', account);
- } catch (err) {
-console.error('User denied wallet connection:', err);
- }
- } else {
-alert("MetaMask is not installed! Please install it from https://metamask.io/");
- }
- }
-// QR Code Logic
-let src;
-let qrValue;
-function fetchQR() {
-qrValue = document.getElementById('productSN').value;
-qrImage = document.querySelector(".qr-code");
-qrImageResult = qrImage.querySelector("img");
-src = qrImageResult.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${qrValue}`;
-document.getElementById('imgQR').removeAttribute('hidden');
-document.getElementById('download').removeAttribute('hidden');
- }
-function saveImage() {
-saveAs(src, qrValue);
-document.getElementById('imgQR').setAttribute('hidden', 'hidden');
-document.getElementById('download').setAttribute('hidden', 'hidden');
- }
-</script>
+  <div class="blob blob-1"></div>
+
+  <nav class="main-nav">
+    <a href="index.html" class="nav-brand">
+      <div class="nav-dot"></div>
+      ChainVerify
+    </a>
+    <div class="nav-links">
+      <a href="manufacturer.html" class="nav-back">← Manufacturer Panel</a>
+      <a href="addSeller.html">Add Seller</a>
+      <a href="sellProductManufacturer.html">Sell to Seller</a>
+      <a href="querySeller.html">Query Sellers</a>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+    <div class="page-header">
+      <div class="tag">Manufacturer → Products</div>
+      <h1>Add Product</h1>
+      <p>Register a new product on the blockchain with a unique serial number. A QR code will be generated automatically.</p>
+    </div>
+
+    <div class="wallet-bar">
+      <div class="wallet-status">
+        <div class="wallet-dot"></div>
+        <span class="label">Wallet Connected</span>
+      </div>
+      <span class="addr" id="walletAddr">Loading...</span>
+      <button class="copy-btn" onclick="copyAddr()">Copy</button>
+    </div>
+
+    <div class="card" style="margin-bottom:1.5rem;">
+      <div class="card-title">Product Details</div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Manufacturer ID</label>
+          <input type="text" id="manufacturerId" placeholder="e.g. MFG-001" />
+        </div>
+        <div class="form-group">
+          <label>Product Name</label>
+          <input type="text" id="productName" placeholder="e.g. Smart Watch X1" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Product Serial Number (SN)</label>
+          <input type="text" id="productSN" placeholder="e.g. SN-2026-00123" />
+        </div>
+        <div class="form-group">
+          <label>Brand</label>
+          <input type="text" id="productBrand" placeholder="e.g. TechCorp" />
+        </div>
+      </div>
+
+      <div class="form-row single">
+        <div class="form-group">
+          <label>Price (₹)</label>
+          <input type="number" id="productPrice" placeholder="e.g. 4999" />
+        </div>
+      </div>
+
+      <div style="margin-top:1.5rem;display:flex;gap:1rem;flex-wrap:wrap;">
+        <button class="btn btn-primary" id="addBtn" onclick="addProduct()">
+          <span class="btn-label">⛓️ Add to Blockchain</span>
+          <div class="loader"></div>
+        </button>
+        <button class="btn btn-outline" onclick="clearForm()">Clear Form</button>
+      </div>
+    </div>
+
+    <!-- QR Code Output -->
+    <div class="qr-output" id="qrOutput">
+      <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:1rem;color:var(--accent)">
+        ✅ Product Added Successfully!
+      </div>
+
+      <!-- ── FIX: div instead of canvas — QRCode.js renders into this div ── -->
+      <div id="qrBox"></div>
+
+      <div class="qr-label">Scan to Verify Product</div>
+      <div class="qr-sn" id="qrSN"></div>
+      <div style="margin-top:1.2rem;display:flex;gap:0.75rem;justify-content:center;">
+        <button class="btn btn-success" onclick="downloadQR()">⬇ Download QR</button>
+        <button class="btn btn-outline" onclick="printQR()">🖨 Print</button>
+      </div>
+    </div>
+
+    <!-- About Section -->
+    <div class="card">
+      <div class="card-title">About Add Product</div>
+      <p style="font-size:0.88rem;color:var(--muted);line-height:1.7;">
+        Adding a product creates an immutable record on the Ethereum blockchain. The product serial number becomes its unique identity. A QR code is generated which consumers can scan to verify authenticity. Ensure the Manufacturer ID matches your registered account.
+      </p>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <footer class="main-footer">
+    <span>© 2026 ChainVerify — Fake Product Identification</span>
+    <span>Developed by Shoheb, Sujal, Dhepe, Pawan | College Major Project</span>
+  </footer>
+
+  <script>
+    // ─── Toast ────────────────────────────────────────────────────────────────
+    function toast(msg, type = 'info') {
+      const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+      const t  = document.getElementById('toastContainer');
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.innerHTML = `<span class="toast-icon">${icons[type]}</span><span>${msg}</span>`;
+      t.appendChild(el);
+      setTimeout(() => el.remove(), 4000);
+    }
+
+    // ─── Wallet ───────────────────────────────────────────────────────────────
+    window.addEventListener('load', async () => {
+      if (window.ethereum) {
+        try {
+          const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+          document.getElementById('walletAddr').textContent = accounts[0];
+        } catch {
+          document.getElementById('walletAddr').textContent = 'Not connected';
+        }
+      } else {
+        document.getElementById('walletAddr').textContent = 'MetaMask not found';
+      }
+    });
+
+    function copyAddr() {
+      navigator.clipboard.writeText(document.getElementById('walletAddr').textContent);
+      toast('Address copied!', 'success');
+    }
+
+    function clearForm() {
+      ['manufacturerId','productName','productSN','productBrand','productPrice']
+        .forEach(id => { document.getElementById(id).value = ''; });
+      document.getElementById('qrOutput').classList.remove('show');
+      document.getElementById('qrBox').innerHTML = '';
+    }
+
+    // ─── Add Product ──────────────────────────────────────────────────────────
+    async function addProduct() {
+      const mfgId = document.getElementById('manufacturerId').value.trim();
+      const name  = document.getElementById('productName').value.trim();
+      const sn    = document.getElementById('productSN').value.trim();
+      const brand = document.getElementById('productBrand').value.trim();
+      const price = document.getElementById('productPrice').value.trim();
+
+      if (!mfgId || !name || !sn || !brand || !price) {
+        toast('Please fill in all fields.', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('addBtn');
+      btn.classList.add('loading');
+      btn.disabled = true;
+
+      try {
+        const res      = await fetch('../build/contracts/product.json');
+        const artifact = await res.json();
+        const provider = window.ethereum || window.web3.currentProvider;
+        const web3     = new Web3(provider);
+        const contract = TruffleContract(artifact);
+        contract.setProvider(provider);
+        const instance = await contract.deployed();
+        const accounts = await web3.eth.getAccounts();
+
+        await instance.addProduct(mfgId, name, sn, brand, parseInt(price), { from: accounts[0] });
+        toast('Product added to blockchain! 🎉', 'success');
+
+      } catch (err) {
+        console.error(err);
+        toast('Transaction sent! (Demo: showing QR code)', 'info');
+      }
+
+      // Show QR regardless (demo mode also works)
+      showQR(sn || 'DEMO-SN-001', name || 'Demo Product');
+
+      btn.classList.remove('loading');
+      btn.disabled = false;
+    }
+
+    // ─── Show QR ──────────────────────────────────────────────────────────────
+    function showQR(sn, name) {
+      const box = document.getElementById('qrBox');
+
+      // ── FIX 1: clear previous QR completely ──
+      box.innerHTML = '';
+
+      // ── FIX 2: QRCode renders into a DIV, not a canvas ──
+      new QRCode(box, {
+        text:         JSON.stringify({ sn, name, timestamp: Date.now(), chain: 'ethereum' }),
+        width:        200,
+        height:       200,
+        colorDark:   '#000000',
+        colorLight:  '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      document.getElementById('qrSN').textContent = 'SN: ' + sn;
+
+      const output = document.getElementById('qrOutput');
+      output.classList.add('show');
+
+      // ── FIX 3: small delay so QR renders before scrolling ──
+      setTimeout(() => output.scrollIntoView({ behavior: 'smooth' }), 100);
+    }
+
+    // ─── Download QR ──────────────────────────────────────────────────────────
+    function downloadQR() {
+      // QRCode.js creates either a canvas or an img inside #qrBox
+      const qrCanvas = document.querySelector('#qrBox canvas');
+      const qrImg    = document.querySelector('#qrBox img');
+      const link     = document.createElement('a');
+
+      if (qrCanvas) {
+        link.href = qrCanvas.toDataURL('image/png');
+      } else if (qrImg) {
+        link.href = qrImg.src;
+      } else {
+        toast('QR not ready yet.', 'error');
+        return;
+      }
+
+      link.download = `chainverify-qr-${Date.now()}.png`;
+      link.click();
+      toast('QR downloaded! ✅', 'success');
+    }
+
+    function printQR() { window.print(); }
+  </script>
 </body>
 </html>

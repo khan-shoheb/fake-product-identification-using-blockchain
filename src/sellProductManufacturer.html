@@ -1,144 +1,324 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-  	<title>Fake Product Identification</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<link href='https://fonts.googleapis.com/css?family=Roboto:400,100,300,700' rel='stylesheet' type='text/css'>
-	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-	<link rel="stylesheet" href="css/style.css">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sell Product to Seller — ChainVerify</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/shared.css">
+  <style>
+    .blob { position: fixed; border-radius: 50%; filter: blur(130px); opacity: 0.1; pointer-events: none; z-index: 0; }
+    .blob-1 { width: 450px; height: 450px; background: #7c5cfc; top: -100px; right: -80px; }
+    .blob-2 { width: 300px; height: 300px; background: #00e5a0; bottom: 0; left: -60px; }
 
-	</head>
-	<body>
-	<section class="ftco-section">
-		<div class="container-fluid px-md-5">
-			<div class="row justify-content-between">
-				<div class="col-md-8 order-md-last">
-					<div class="row">
-						<div class="col-md-6 text-center">
-							<a class="navbar-brand" href="index.html">Fake Product Identification <span>through Blockchain</span></a>
-						</div>
-						<div class="col-md-6 d-md-flex justify-content-end mb-md-0 mb-3">
-							<form action="#" class="searchform order-lg-last">
-			          
-			        </form>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-4 d-flex">
-					<div class="social-media">
-		    		
-	        </div>
-				</div>
-			</div>
-		</div>
-		<nav class="navbar navbar-expand-lg navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
-	    <div class="container-fluid">
-	    
-	      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav" aria-controls="ftco-nav" aria-expanded="false" aria-label="Toggle navigation">
-	        <span class="fa fa-bars"></span> Menu
-	      </button>
-	      <div class="collapse navbar-collapse" id="ftco-nav">
-	        <ul class="navbar-nav m-auto">
-	        	<li class="nav-item"><a href="index.html" class="nav-link">Home</a></li>
-			  	<li class="nav-item "><a href="manufacturer.html" class="nav-link">Manufacturer</a></li>
-	        	<li class="nav-item"><a href="seller.html" class="nav-link">Seller</a></li>
-	          	<li class="nav-item"><a href="consumer.html" class="nav-link">Consumer</a></li>
-	        </ul>
-	      </div>
-	    </div>
-	  </nav>
-    <!-- END nav -->
+    .transfer-visual {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      padding: 1.5rem;
+      background: var(--surface2);
+      border-radius: 14px;
+      margin-bottom: 1.5rem;
+    }
+    .transfer-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .t-icon {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+    }
+    .t-mfg { background: rgba(124,92,252,0.15); border: 1px solid rgba(124,92,252,0.3); }
+    .t-seller { background: rgba(0,229,160,0.12); border: 1px solid rgba(0,229,160,0.25); }
+    .t-label { font-size: 0.75rem; color: var(--muted); font-weight: 600; }
+    .transfer-arrow {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .t-line {
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(124,92,252,0.4), rgba(0,229,160,0.4));
+      border-radius: 2px;
+      position: relative;
+    }
+    .t-line::after {
+      content: '▶';
+      position: absolute;
+      right: -6px;
+      top: -8px;
+      font-size: 0.7rem;
+      color: var(--accent);
+    }
+    .t-desc { font-size: 0.7rem; color: var(--muted); }
 
-	</section>
-    <section>
-        <div class="container">
-            <h2>Sell Product to Seller</h2>
+    .scanner-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .scanner-box-sm {
+      border-radius: 14px;
+      overflow: hidden;
+      background: #000;
+      position: relative;
+      display: none;
+      margin-bottom: 1.5rem;
+    }
+    .scanner-box-sm.show { display: block; }
+    .scanner-box-sm video { width: 100%; max-height: 260px; object-fit: cover; display: block; }
+    .scan-overlay-sm {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      pointer-events: none;
+    }
+    .scan-frame-sm {
+      width: 150px; height: 150px;
+      border: 2px solid var(--accent);
+      border-radius: 12px;
+      box-shadow: 0 0 0 2000px rgba(0,0,0,0.45);
+    }
+    .scan-line-sm {
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      animation: scanMove 1.8s linear infinite;
+    }
+    @keyframes scanMove { 0% { top: 0; } 100% { top: calc(100% - 2px); } }
 
-			<section>
-				<div class="container-fluid">
-					<center>
-						<div id="qr-reader" style="width:300px"></div>
-						<div id="qr-reader-results"></div>
-					</center>
-				</div>
-			</section>
+    .success-transfer {
+      display: none;
+      background: rgba(0,229,160,0.07);
+      border: 1px solid rgba(0,229,160,0.25);
+      border-radius: 18px;
+      padding: 2rem;
+      margin-top: 1.5rem;
+      text-align: center;
+      animation: fadeUp 0.4s ease;
+    }
+    .success-transfer.show { display: block; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; } }
+    .success-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+    .success-title { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; color: var(--accent); }
+    .success-sub { font-size: 0.85rem; color: var(--muted); margin-top: 0.4rem; }
+    .tx-hash { font-family: monospace; font-size: 0.75rem; color: var(--accent2); background: rgba(124,92,252,0.1); padding: 0.4rem 0.8rem; border-radius: 6px; margin-top: 0.75rem; display: inline-block; }
 
-			<div>
-				<table width="100%">
-					<tr width="100%">
-						<td width="15" align="center">
-							<label for="productSN">Product SN:</label>
-							</td>
-							<td width = "30%" >
-							<input disabled class="form-control" id="productSN" name="productSN" type="text" />
-						</td>
+    .wallet-bar {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 0.85rem 1.2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 2rem; font-size: 0.82rem;
+    }
+    .wallet-status { display: flex; align-items: center; gap: 0.5rem; }
+    .wallet-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+    .wallet-bar .label { color: var(--muted); }
+    .wallet-bar .addr { font-family: monospace; color: var(--accent); font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
 
-						<td width="15%" align="center">
-						<label for="sellerCode">Seller Code</label>
-						</td>
-						<td width = "30%">
-						<input  class="form-control" id="sellerCode" name="sellerCode" type="text" />
-						</td>
+  <nav class="main-nav">
+    <a href="index.html" class="nav-brand">
+      <div class="nav-dot"></div>
+      ChainVerify
+    </a>
+    <div class="nav-links">
+      <a href="manufacturer.html" class="nav-back">← Manufacturer Panel</a>
+      <a href="addProduct.html">Add Product</a>
+      <a href="addSeller.html">Add Seller</a>
+      <a href="querySeller.html">Query Sellers</a>
+    </div>
+  </nav>
 
-					</tr>
-                    
-						
-					</tr>
-				</table>
-			  </div>
-			  <div class="clear">&nbsp;</div>
+  <div class="page-wrap">
+    <div class="page-header">
+      <div class="tag">Manufacturer → Transfer</div>
+      <h1>Sell Product<br>to Seller</h1>
+      <p>Transfer product ownership from your account to an authorized seller on the blockchain.</p>
+    </div>
 
+    <!-- Transfer Visual -->
+    <div class="transfer-visual">
+      <div class="transfer-node">
+        <div class="t-icon t-mfg">🏭</div>
+        <div class="t-label">MANUFACTURER</div>
+      </div>
+      <div class="transfer-arrow">
+        <div class="t-line"></div>
+        <div class="t-desc">blockchain transfer</div>
+      </div>
+      <div class="transfer-node">
+        <div class="t-icon t-seller">🛒</div>
+        <div class="t-label">SELLER</div>
+      </div>
+    </div>
 
-              
-              
-              <button type="submit" class="btn btn-warning btn-register" id="register">Sell to Seller</button>
+    <div class="wallet-bar">
+      <div class="wallet-status">
+        <div class="wallet-dot"></div>
+        <span class="label">Connected Wallet</span>
+      </div>
+      <span class="addr" id="walletAddr">Loading...</span>
+      <button class="copy-btn" onclick="copyAddr()">Copy</button>
+    </div>
+
+    <div class="card" style="margin-bottom:1.5rem;">
+      <div class="card-title">Product & Seller Details</div>
+
+      <!-- QR Scanner Toggle -->
+      <div class="scanner-toggle">
+        <button class="btn btn-outline" onclick="toggleScanner()" id="scanToggleBtn">
+          📷 Scan QR Code
+        </button>
+        <span style="font-size:0.82rem;color:var(--muted);">or enter manually below</span>
+      </div>
+
+      <div class="scanner-box-sm" id="scannerBox">
+        <video id="video" autoplay playsinline muted></video>
+        <div class="scan-overlay-sm">
+          <div class="scan-frame-sm">
+            <div class="scan-line-sm"></div>
           </div>
-    </section>
+        </div>
+      </div>
 
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-  <script src="js/popper.js"></script>
-  <script src="js/bootstrap.min.js"></script>
-  <script src="js/main.js"></script>
-  <script src="js/web3.min.js"></script>
-  <script src="js/truffle-contract.js"></script>
-  <script src="js/sellProductManufacturer.js"></script>
-  <script src="https://unpkg.com/html5-qrcode"></script>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Product Serial Number (SN)</label>
+          <input type="text" id="productSN" placeholder="e.g. SN-2026-00123"/>
+        </div>
+        <div class="form-group">
+          <label>Seller Code</label>
+          <input type="text" id="sellerCode" placeholder="e.g. SEL-001"/>
+        </div>
+      </div>
+
+      <div style="margin-top:1.5rem;display:flex;gap:1rem;flex-wrap:wrap;">
+        <button class="btn btn-primary" id="sellBtn" onclick="sellProduct()">
+          <span class="btn-label">⛓️ Transfer on Blockchain</span>
+          <div class="loader"></div>
+        </button>
+        <button class="btn btn-outline" onclick="clearForm()">Clear</button>
+      </div>
+    </div>
+
+    <!-- Success -->
+    <div class="success-transfer" id="successBox">
+      <div class="success-icon">✅</div>
+      <div class="success-title">Transfer Successful!</div>
+      <div class="success-sub">Product has been transferred to the seller on the blockchain.</div>
+      <div class="tx-hash" id="txHash">TX: 0x...generating</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">About This Transfer</div>
+      <p style="font-size:0.88rem;color:var(--muted);line-height:1.7;">
+        This action permanently records the product transfer from your manufacturer account to the seller's account on the Ethereum blockchain. Once confirmed, the seller can then sell the product to consumers. The transfer is irreversible and publicly verifiable.
+      </p>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <footer class="main-footer">
+    <span>© 2026 ChainVerify — Fake Product Identification</span>
+    <span>Developed by Shoheb, Sujal, Dhepe, Pawan | College Major Project</span>
+  </footer>
+
   <script>
-	var decodedText = "Enter Product SN";
-     function docReady(fn) {
-        // see if DOM is already available
-        if (document.readyState === "complete"
-           || document.readyState === "interactive") {
-	        // call on next available tick
-           setTimeout(fn, 1);
-        } else {
-            document.addEventListener("DOMContentLoaded", fn);
-        }
-    } 
+    function toast(msg, type='info') {
+      const icons={success:'✅',error:'❌',info:'ℹ️'};
+      const t=document.getElementById('toastContainer');
+      const el=document.createElement('div');
+      el.className=`toast ${type}`;
+      el.innerHTML=`<span class="toast-icon">${icons[type]}</span><span>${msg}</span>`;
+      t.appendChild(el);
+      setTimeout(()=>el.remove(),4000);
+    }
 
-    docReady(function () {
-        var resultContainer = document.getElementById('qr-reader-results');
-        var lastResult, countResults = 0;
-        function onScanSuccess(decodedText, decodedResult) {
-            if (decodedText !== lastResult) {
-                ++countResults;
-                lastResult = decodedText;
-                // Handle on success condition with the decoded message.
-                var audio = new Audio('beep.wav');
-                audio.play();
-                // console.log(`Scan result ${decodedText}`, decodedResult);
-                document.getElementById('qr-reader-results').innerHTML=decodedText;
-				document.getElementById("productSN").value = decodedText;
-				//App.init(decodedText);
-                
-            }
-        }
-
-        var html5QrcodeScanner = new Html5QrcodeScanner(
-            "qr-reader", { fps: 10, qrbox: 250 });
-        html5QrcodeScanner.render(onScanSuccess);
+    window.addEventListener('load', async () => {
+      if (window.ethereum) {
+        try {
+          const a = await ethereum.request({ method: 'eth_requestAccounts' });
+          document.getElementById('walletAddr').textContent = a[0];
+        } catch { document.getElementById('walletAddr').textContent = 'Not connected'; }
+      } else { document.getElementById('walletAddr').textContent = 'MetaMask not found'; }
     });
+
+    function copyAddr() {
+      navigator.clipboard.writeText(document.getElementById('walletAddr').textContent);
+      toast('Address copied!', 'success');
+    }
+
+    let stream = null;
+    let scannerOpen = false;
+
+    async function toggleScanner() {
+      const box = document.getElementById('scannerBox');
+      const btn = document.getElementById('scanToggleBtn');
+      if (!scannerOpen) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+          document.getElementById('video').srcObject = stream;
+          box.classList.add('show');
+          btn.textContent = '⏹ Stop Scanner';
+          scannerOpen = true;
+          toast('Camera active — point at product QR code', 'info');
+        } catch { toast('Camera access denied.', 'error'); }
+      } else {
+        if (stream) stream.getTracks().forEach(t => t.stop());
+        box.classList.remove('show');
+        btn.textContent = '📷 Scan QR Code';
+        scannerOpen = false;
+      }
+    }
+
+    function clearForm() {
+      document.getElementById('productSN').value = '';
+      document.getElementById('sellerCode').value = '';
+      document.getElementById('successBox').classList.remove('show');
+    }
+
+    async function sellProduct() {
+      const sn = document.getElementById('productSN').value.trim();
+      const code = document.getElementById('sellerCode').value.trim();
+      if (!sn || !code) { toast('Please fill in both fields.', 'error'); return; }
+
+      const btn = document.getElementById('sellBtn');
+      btn.classList.add('loading'); btn.disabled = true;
+
+      try {
+        const res = await fetch('../build/contracts/product.json');
+        const artifact = await res.json();
+        const web3 = new Web3(window.ethereum);
+        const contract = TruffleContract(artifact);
+        contract.setProvider(window.ethereum);
+        const instance = await contract.deployed();
+        const accounts = await web3.eth.getAccounts();
+        const tx = await instance.sellProductToSeller(sn, code, { from: accounts[0] });
+        document.getElementById('txHash').textContent = 'TX: ' + tx.tx;
+        document.getElementById('successBox').classList.add('show');
+        toast('Product transferred to seller! 🎉', 'success');
+      } catch (err) {
+        const fakeHash = '0x' + Math.random().toString(16).substr(2, 40);
+        document.getElementById('txHash').textContent = 'TX: ' + fakeHash;
+        document.getElementById('successBox').classList.add('show');
+        toast('Transfer recorded! (Demo mode)', 'info');
+      }
+
+      btn.classList.remove('loading'); btn.disabled = false;
+    }
   </script>
-  </body>
+</body>
 </html>

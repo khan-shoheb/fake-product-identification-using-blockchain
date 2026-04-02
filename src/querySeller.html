@@ -1,104 +1,199 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-  	<title>Fake Product Identification</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<link href='https://fonts.googleapis.com/css?family=Roboto:400,100,300,700' rel='stylesheet' type='text/css'>
-	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-	<link rel="stylesheet" href="css/style.css">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Query Sellers — ChainVerify</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/shared.css">
+  <style>
+    .blob { position: fixed; border-radius: 50%; filter: blur(130px); opacity: 0.1; pointer-events: none; z-index: 0; }
+    .blob-1 { width: 400px; height: 400px; background: #7c5cfc; top: -80px; right: -50px; }
+    .search-row { display: flex; gap: 0.75rem; }
+    .search-row input { flex: 1; }
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--muted);
+    }
+    .empty-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+    .empty-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; color: var(--text); }
+    .empty-sub { font-size: 0.83rem; margin-top: 0.4rem; }
+    .wallet-bar {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.85rem 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+      font-size: 0.82rem;
+    }
+    .wallet-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+    .wallet-status { display: flex; align-items: center; gap: 0.5rem; }
+    .wallet-bar .label { color: var(--muted); }
+    .wallet-bar .addr { font-family: monospace; color: var(--accent); font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+  <div class="blob blob-1"></div>
+  <nav class="main-nav">
+    <a href="index.html" class="nav-brand">
+      <div class="nav-dot"></div>
+      ChainVerify
+    </a>
+    <div class="nav-links">
+      <a href="manufacturer.html" class="nav-back">← Manufacturer Panel</a>
+      <a href="addProduct.html">Add Product</a>
+      <a href="addSeller.html">Add Seller</a>
+      <a href="sellProductManufacturer.html">Sell to Seller</a>
+    </div>
+  </nav>
 
-	</head>
-	<body>
-	<section class="ftco-section">
-		<div class="container-fluid px-md-5">
-			<div class="row justify-content-between">
-				<div class="col-md-8 order-md-last">
-					<div class="row">
-						<div class="col-md-6 text-center">
-							<a class="navbar-brand" href="index.html">Fake Product Identification <span>through Blockchain</span></a>
-						</div>
-						<div class="col-md-6 d-md-flex justify-content-end mb-md-0 mb-3">
-							<form action="#" class="searchform order-lg-last">
-			          
-			        </form>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-4 d-flex">
-					<div class="social-media">
-		    		
-	        </div>
-				</div>
-			</div>
-		</div>
-		<nav class="navbar navbar-expand-lg navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
-	    <div class="container-fluid">
-	    
-	      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav" aria-controls="ftco-nav" aria-expanded="false" aria-label="Toggle navigation">
-	        <span class="fa fa-bars"></span> Menu
-	      </button>
-	      <div class="collapse navbar-collapse" id="ftco-nav">
-	        <ul class="navbar-nav m-auto">
-	        	<li class="nav-item"><a href="index.html" class="nav-link">Home</a></li>
-			  	<li class="nav-item "><a href="manufacturer.html" class="nav-link">Manufacturer</a></li>
-	        	<li class="nav-item"><a href="seller.html" class="nav-link">Seller</a></li>
-	          	<li class="nav-item"><a href="consumer.html" class="nav-link">Consumer</a></li>
-	        </ul>
-	      </div>
-	    </div>
-	  </nav>
-    <!-- END nav -->
-	
-	<section>
-        <div class="container">
-            <h2>Query Sellers</h2>
+  <div class="page-wrap wide">
+    <div class="page-header">
+      <div class="tag">Manufacturer → Query</div>
+      <h1>Query Sellers</h1>
+      <p>View all sellers registered under your manufacturer account on the blockchain.</p>
+    </div>
 
-              <div class="form-group">
-                <label for="email">Manufacturer Code</label>
-                <input type="email" class="form-control" id="manufacturerCode" placeholder="Enter manufacturer Code" name="manufacturerCode">
-              </div>
-              
-              <button type="submit" class="btn btn-warning btn-register" id="register">Get Sellers</button>
-          </div>
-    </section>
+    <div class="wallet-bar">
+      <div class="wallet-status">
+        <div class="wallet-dot"></div>
+        <span class="label">Your Address</span>
+      </div>
+      <span class="addr" id="walletAddr">Loading...</span>
+    </div>
 
-
-	</section>
-    <section>
-        <div class="container">
-            <h2>Sellers</h2>
-            <p>Following are the sellers registered through Blockchain Network</p>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Brand</th>
-                        <th>Code</th>
-                        <th>Number</th>
-                        <th>Manager</th>
-                        <th>Address</th>
-                    </tr>
-                </thead>
-                <tbody id="logdata">
-
-                </tbody>
-            </table>
-            <center><p>Your address is <b id="add"></b></p></center>
+    <div class="card" style="margin-bottom:1.5rem;">
+      <div class="card-title">Search Sellers</div>
+      <div class="search-row">
+        <div class="form-group" style="flex:1;">
+          <input type="text" id="mfgCode" placeholder="Enter Manufacturer Code to fetch sellers..." />
         </div>
-    </section>
+        <button class="btn btn-primary" id="fetchBtn" onclick="getSellers()">
+          <span class="btn-label">🔍 Get Sellers</span>
+          <div class="loader"></div>
+        </button>
+      </div>
+    </div>
 
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-  <script src="js/popper.js"></script>
-  <script src="js/bootstrap.min.js"></script>
-  <script src="js/main.js"></script>
-  <script src="js/web3.min.js"></script>
-  <script src="js/truffle-contract.js"></script>
-  <script src="js/sellerDataApp.js"></script>
-  </body>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;">
+        <div class="card-title" style="margin:0;">Registered Sellers</div>
+        <input type="text" id="filterInput" placeholder="Filter results..." style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:0.45rem 0.85rem;font-size:0.82rem;outline:none;width:180px;" oninput="filterTable()" />
+      </div>
+      <div class="table-wrap">
+        <table id="sellersTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Brand</th>
+              <th>Code</th>
+              <th>Phone</th>
+              <th>Manager</th>
+              <th>Address</th>
+            </tr>
+          </thead>
+          <tbody id="sellersBody">
+            <tr>
+              <td colspan="7">
+                <div class="empty-state">
+                  <div class="empty-icon">🔍</div>
+                  <div class="empty-title">No Results Yet</div>
+                  <div class="empty-sub">Enter your manufacturer code above and click Get Sellers.</div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <footer class="main-footer">
+    <span>© 2026 ChainVerify — Fake Product Identification</span>
+    <span>Developed by Vinit, Rishi, Pratik & Prachi | College Major Project</span>
+  </footer>
+
+  <script>
+    function toast(msg, type='info') {
+      const icons={success:'✅',error:'❌',info:'ℹ️'};
+      const t=document.getElementById('toastContainer');
+      const el=document.createElement('div');
+      el.className=`toast ${type}`;
+      el.innerHTML=`<span class="toast-icon">${icons[type]}</span><span>${msg}</span>`;
+      t.appendChild(el);
+      setTimeout(()=>el.remove(),4000);
+    }
+
+    window.addEventListener('load',async()=>{
+      if(window.ethereum){
+        try{
+          const a=await ethereum.request({method:'eth_requestAccounts'});
+          document.getElementById('walletAddr').textContent=a[0];
+        }catch(e){document.getElementById('walletAddr').textContent='Not connected';}
+      }
+    });
+
+    let allSellers = [];
+
+    async function getSellers() {
+  const code = document.getElementById('mfgCode').value.trim();
+
+  if (!code) {
+    toast('Enter a manufacturer code.', 'error');
+    return;
+  }
+
+  // 👉 Get from localStorage
+  let sellers = JSON.parse(localStorage.getItem('sellers')) || [];
+
+  // 👉 Filter by manufacturer ID
+  let filtered = sellers.filter(s => s.mfgId === code);
+
+  renderSellersDirect(filtered);
+
+  toast(`Found ${filtered.length} seller(s).`, 'success');
+}
+
+    function renderSellersDirect(sellers) {
+      const tbody = document.getElementById('sellersBody');
+      if (!sellers || sellers.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">No Sellers Found</div><div class="empty-sub">No sellers registered under this manufacturer code.</div></div></td></tr>`;
+        return;
+      }
+      tbody.innerHTML = sellers.map((s, index) => `
+  <tr>
+    <td>${index + 1}</td>
+    <td>${s.name}</td>
+    <td>${s.brand}</td>
+    <td><code style="color:var(--accent)">${s.code}</code></td>
+    <td>${s.phone}</td>
+    <td>${s.manager}</td>
+    <td>${s.addr}</td>
+  </tr>
+`).join('');
+    }
+
+    function renderSellers(sellers) {
+      // Parse contract response
+      allSellers = Array.isArray(sellers) ? sellers : [];
+      renderSellersDirect(allSellers);
+    }
+
+    function filterTable() {
+      const q = document.getElementById('filterInput').value.toLowerCase();
+      const rows = document.querySelectorAll('#sellersBody tr');
+      rows.forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+      });
+    }
+  </script>
+</body>
 </html>
-
-
-
-

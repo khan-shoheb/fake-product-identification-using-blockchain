@@ -1,89 +1,419 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<title>Fake Product Identification</title>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href='https://fonts.googleapis.com/css?family=Roboto:400,100,300,700' rel='stylesheet' type='text/css'>
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-<link rel="stylesheet" href="css/style.css">
-<style>
-  .developer-credits {
-    text-align: center;
-    font-weight: 500;
-    margin-top: 20px;
-    padding: 10px;
-    font-size: 16px;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ChainVerify — Fake Product Identification</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #111118;
+      --surface2: #1a1a24;
+      --border: rgba(255,255,255,0.07);
+      --accent: #00e5a0;
+      --accent2: #7c5cfc;
+      --accent3: #ff6b6b;
+      --text: #f0f0f5;
+      --muted: #7a7a92;
+      --font-head: 'Syne', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Background Grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(0,229,160,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,160,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Glow blobs */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .blob-1 { width: 600px; height: 600px; background: var(--accent2); top: -200px; right: -100px; animation: float 8s ease-in-out infinite; }
+    .blob-2 { width: 400px; height: 400px; background: var(--accent); bottom: 0; left: -100px; animation: float 10s ease-in-out infinite reverse; }
+    @keyframes float { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-30px) scale(1.05); } }
+
+    /* Nav */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.2rem 3rem;
+      background: rgba(10,10,15,0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-brand {
+      font-family: var(--font-head);
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: var(--text);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .nav-brand .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+    .nav-links { display: flex; gap: 0.5rem; }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); background: var(--surface2); }
+
+    /* Hero */
+    main { position: relative; z-index: 1; }
+
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 6rem 2rem 4rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(0,229,160,0.1);
+      border: 1px solid rgba(0,229,160,0.2);
+      color: var(--accent);
+      font-size: 0.8rem;
+      font-weight: 500;
+      padding: 0.4rem 1rem;
+      border-radius: 100px;
+      margin-bottom: 2rem;
+      animation: fadeUp 0.6s ease both;
+    }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    h1 {
+      font-family: var(--font-head);
+      font-size: clamp(3rem, 8vw, 6rem);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+    h1 .accent { color: var(--accent); }
+    h1 .accent2 { color: var(--accent2); }
+
+    .hero-sub {
+      max-width: 520px;
+      color: var(--muted);
+      font-size: 1.1rem;
+      line-height: 1.7;
+      margin: 1.5rem auto 3rem;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Panel Cards */
+    .panels {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      max-width: 960px;
+      width: 100%;
+      margin: 0 auto;
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+
+    .panel-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2.5rem 2rem;
+      text-decoration: none;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .panel-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.3s;
+      border-radius: 20px;
+    }
+    .panel-card:hover { transform: translateY(-6px); border-color: rgba(255,255,255,0.15); }
+    .panel-card:hover::before { opacity: 1; }
+
+    .panel-card.mfg::before { background: radial-gradient(circle at top right, rgba(124,92,252,0.15), transparent 60%); }
+    .panel-card.seller::before { background: radial-gradient(circle at top right, rgba(0,229,160,0.12), transparent 60%); }
+    .panel-card.consumer::before { background: radial-gradient(circle at top right, rgba(255,107,107,0.12), transparent 60%); }
+
+    .panel-card:hover .panel-icon { transform: scale(1.1); }
+
+    .panel-icon {
+      width: 56px; height: 56px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+      transition: transform 0.3s;
+    }
+    .mfg .panel-icon { background: rgba(124,92,252,0.15); border: 1px solid rgba(124,92,252,0.3); }
+    .seller .panel-icon { background: rgba(0,229,160,0.12); border: 1px solid rgba(0,229,160,0.25); }
+    .consumer .panel-icon { background: rgba(255,107,107,0.12); border: 1px solid rgba(255,107,107,0.25); }
+
+    .panel-title {
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: 1.25rem;
+    }
+    .panel-desc {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .panel-arrow {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    .mfg .panel-arrow { color: var(--accent2); }
+    .seller .panel-arrow { color: var(--accent); }
+    .consumer .panel-arrow { color: var(--accent3); }
+
+    /* Stats */
+    .stats {
+      display: flex;
+      gap: 3rem;
+      justify-content: center;
+      margin-top: 5rem;
+      padding: 0 2rem;
+      animation: fadeUp 0.6s 0.4s ease both;
+    }
+    .stat { text-align: center; }
+    .stat-num {
+      font-family: var(--font-head);
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .stat-num span { color: var(--accent); }
+    .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 0.2rem; }
+
+    /* Features Section */
+    .features {
+      max-width: 960px;
+      margin: 6rem auto 4rem;
+      padding: 0 2rem;
+    }
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+    .section-title {
+      font-family: var(--font-head);
+      font-size: 2.5rem;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 3rem;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+    .feature-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+    }
+    .feature-icon { font-size: 1.5rem; margin-bottom: 0.75rem; }
+    .feature-title { font-family: var(--font-head); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .feature-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.6; }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { display: none; }
+      .panels { grid-template-columns: 1fr; }
+      .stats { flex-wrap: wrap; gap: 2rem; }
+      .features-grid { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
-<section class="ftco-section">
-<div class="container-fluid px-md-5">
-<div class="row justify-content-between">
-<div class="col-md-8 order-md-last">
-<div class="row">
-<div class="col-md-6 text-center">
-<a class="navbar-brand" href="index.html">Fake Product Identification <span>through Blockchain</span></a>
-</div>
-<div class="col-md-6 d-md-flex justify-content-end mb-md-0 mb-3">
-<form action="#" class="searchform order-lg-last">
-</form>
-</div>
-</div>
-</div>
-<div class="col-md-4 d-flex">
-<div class="social-media">
-</div>
-</div>
-</div>
-</div>
-<nav class="navbar navbar-expand-lg navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
-<div class="container-fluid">
-<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav" aria-controls="ftco-nav" aria-expanded="false" aria-label="Toggle navigation">
-<span class="fa fa-bars"></span> Menu
-</button>
-<div class="collapse navbar-collapse" id="ftco-nav">
-<ul class="navbar-nav m-auto">
-<li class="nav-item"><a href="index.html" class="nav-link">Home</a></li>
-<li class="nav-item "><a href="manufacturer.html" class="nav-link">Manufacturer</a></li>
-<li class="nav-item"><a href="seller.html" class="nav-link">Seller</a></li>
-<li class="nav-item"><a href="consumer.html" class="nav-link">Consumer</a></li>
-</ul>
-</div>
-</div>
-</nav>
-<!-- END nav -->
-</section>
-<div class="container-fluid px-md-5">
-<div class="row justify-content-between">
-<div class="col-md-12 order-md-last">
-<div class="row">
-<div class="col-md-12 text-center">
-<a class="navbar-brand" href="index.html">WELCOME <br> <br> <br> <br> </a>
-</div>
-<div class="col-md-12">
-<div class="developer-credits">
-DEVELOPED BY VINIT, RISHI, PRATIK & PRACHI
-</div>
-</div>
-<div class="col-md-6 d-md-flex justify-content-end mb-md-0 mb-3">
-<form action="#" class="searchform order-lg-last">
-</form>
-</div>
-</div>
-</div>
-<div class="col-md-4 d-flex">
-<div class="social-media">
-</div>
-</div>
-</div>
-</div>
-</section>
-<script src="js/jquery.min.js"></script>
-<script src="js/bootstrap.min.js"></script>
-<script src="js/main.js"></script>
-<script src="js/web3.min.js"></script>
-<script src="js/truffle-contract.js"></script>
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+
+  <nav>
+    <a href="index.html" class="nav-brand">
+      <div class="dot"></div>
+      ChainVerify
+    </a>
+    <div class="nav-links">
+      <a href="manufacturer.html">Manufacturer</a>
+      <a href="seller.html">Seller</a>
+      <a href="consumer.html">Consumer</a>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <div class="badge">
+        <div class="badge-dot"></div>
+        Blockchain-Powered Authentication
+      </div>
+
+      <h1>
+        Stop <span class="accent">Fake</span><br>
+        Products <span class="accent2">Cold</span>
+      </h1>
+
+      <p class="hero-sub">
+        A decentralized system to verify product authenticity using blockchain. 
+        Every product gets a unique on-chain identity — unforgeable, transparent, traceable.
+      </p>
+
+      <div class="panels">
+        <a href="manufacturer.html" class="panel-card mfg">
+          <div class="panel-icon">🏭</div>
+          <div class="panel-title">Manufacturer</div>
+          <div class="panel-desc">Register products, authorize sellers, and manage your entire supply chain on-chain.</div>
+          <div class="panel-arrow">Enter Panel →</div>
+        </a>
+        <a href="seller.html" class="panel-card seller">
+          <div class="panel-icon">🛒</div>
+          <div class="panel-title">Seller</div>
+          <div class="panel-desc">Sell verified products to consumers. Every transfer is logged on the blockchain.</div>
+          <div class="panel-arrow">Enter Panel →</div>
+        </a>
+        <a href="consumer.html" class="panel-card consumer">
+          <div class="panel-icon">👤</div>
+          <div class="panel-title">Consumer</div>
+          <div class="panel-desc">Verify products you bought. Scan QR codes, check history, confirm authenticity.</div>
+          <div class="panel-arrow">Enter Panel →</div>
+        </a>
+      </div>
+    </section>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-num">100<span>%</span></div>
+        <div class="stat-label">Tamper-proof Records</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">0<span>ms*</span></div>
+        <div class="stat-label">Blockchain Delay</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">3<span>+</span></div>
+        <div class="stat-label">Stakeholder Roles</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">QR<span>✓</span></div>
+        <div class="stat-label">Scan to Verify</div>
+      </div>
+    </div>
+
+    <section class="features">
+      <div class="section-label">How It Works</div>
+      <div class="section-title">Built for the entire<br>supply chain</div>
+      <div class="features-grid">
+        <div class="feature-item">
+          <div class="feature-icon">🔗</div>
+          <div class="feature-title">On-Chain Registry</div>
+          <div class="feature-desc">Every product is registered as a unique blockchain entry — immutable and verifiable by anyone.</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">📦</div>
+          <div class="feature-title">Transfer Tracking</div>
+          <div class="feature-desc">Track product movement from manufacturer → seller → consumer with full audit trail.</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">📷</div>
+          <div class="feature-title">QR Code Verification</div>
+          <div class="feature-desc">Consumers scan a QR code to instantly verify if a product is genuine or counterfeit.</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🛡️</div>
+          <div class="feature-title">Counterfeit Detection</div>
+          <div class="feature-desc">Smart contracts automatically flag duplicate or unauthorized product entries.</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">📋</div>
+          <div class="feature-title">Purchase History</div>
+          <div class="feature-desc">Consumers can view their complete purchase history linked to their wallet address.</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">⛓️</div>
+          <div class="feature-title">Smart Contracts</div>
+          <div class="feature-desc">Powered by Solidity smart contracts deployed on Ethereum — fully decentralized logic.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>© 2026 ChainVerify — Fake Product Identification</span>
+    <span>Developed by Shoheb, Sujal, Dhepe, Pawan | College Major Project</span>
+  </footer>
 </body>
 </html>

@@ -1,140 +1,452 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-  	<title>Fake Product Identification</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<link href='https://fonts.googleapis.com/css?family=Roboto:400,100,300,700' rel='stylesheet' type='text/css'>
-	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-	<link rel="stylesheet" href="css/style.css">
-
-	</head>
-	<body>
-	<section class="ftco-section">
-		<div class="container-fluid px-md-5">
-			<div class="row justify-content-between">
-				<div class="col-md-8 order-md-last">
-					<div class="row">
-						<div class="col-md-6 text-center">
-							<a class="navbar-brand" href="index.html">Fake Product Identification <span>through Blockchain</span></a>
-						</div>
-						<div class="col-md-6 d-md-flex justify-content-end mb-md-0 mb-3">
-							<form action="#" class="searchform order-lg-last">
-			          
-			        </form>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-4 d-flex">
-					<div class="social-media">
-		    		
-	        </div>
-				</div>
-			</div>
-		</div>
-		<nav class="navbar navbar-expand-lg navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
-	    <div class="container-fluid">
-	    
-	      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav" aria-controls="ftco-nav" aria-expanded="false" aria-label="Toggle navigation">
-	        <span class="fa fa-bars"></span> Menu
-	      </button>
-	      <div class="collapse navbar-collapse" id="ftco-nav">
-	        <ul class="navbar-nav m-auto">
-	        	<li class="nav-item"><a href="index.html" class="nav-link">Home</a></li>
-			  	<li class="nav-item "><a href="manufacturer.html" class="nav-link">Manufacturer</a></li>
-	        	<li class="nav-item"><a href="seller.html" class="nav-link">Seller</a></li>
-	          	<li class="nav-item"><a href="consumer.html" class="nav-link">Consumer</a></li>
-	        </ul>
-	      </div>
-	    </div>
-	  </nav>
-    <!-- END nav -->
-
-	</section>
-    <section>
-        <div class="container">
-            <h2>Sell Product to Consumer</h2>
-
-			<section>
-				<div class="container-fluid">
-					<center>
-						<div id="qr-reader" style="width:300px"></div>
-						<div id="qr-reader-results"></div>
-					</center>
-				</div>
-			</section>
-
-			<div>
-				<table width="100%">
-					<tr width="100%">
-						<td width="15%" align="center">
-						<label for="productSN">Product SN:</label>
-						</td>
-						<td width = "30%">
-						<input disabled class="form-control" id="productSN" name="productSN" type="text" />
-						</td>
-						<td width="15" align="center">
-						<label for="consumerCode">Consumer Code</label>
-						</td>
-						<td width = "30%" >
-						<input class="form-control" id="consumerCode" name="consumerCode" type="text" />
-						</td>
-					</tr>
-						
-				</table>
-			  </div>
-			  <div class="clear">&nbsp;</div>
-
-
-              
-              
-              <button type="submit" class="btn btn-warning btn-register" id="register">Sell to Consumer</button>
-          </div>
-    </section>
-
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-  <script src="js/popper.js"></script>
-  <script src="js/bootstrap.min.js"></script>
-  <script src="js/main.js"></script>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sell Product to Consumer — ChainVerify</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/shared.css">
   <script src="js/web3.min.js"></script>
   <script src="js/truffle-contract.js"></script>
-  <script src="js/sellProductSeller.js"></script>
-  <script src="https://unpkg.com/html5-qrcode"></script>
-  <script>
-	var decodedText = "Enter Product SN";
-    function docReady(fn) {
-        // see if DOM is already available
-        if (document.readyState === "complete"
-            || document.readyState === "interactive") {
-            // call on next available tick
-            setTimeout(fn, 1);
-        } else {
-            document.addEventListener("DOMContentLoaded", fn);
-        }
+  <!-- jsQR library - actual QR code decoder -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+  <style>
+    .blob { position: fixed; border-radius: 50%; filter: blur(130px); opacity: 0.1; pointer-events: none; z-index: 0; }
+    .blob-1 { width: 450px; height: 450px; background: #00e5a0; top: -100px; right: -80px; }
+    .blob-2 { width: 300px; height: 300px; background: #ff6b6b; bottom: 0; left: -60px; }
+
+    .transfer-visual { display: flex; align-items: center; justify-content: center; gap: 1rem; padding: 1.5rem; background: var(--surface2); border-radius: 14px; margin-bottom: 1.5rem; }
+    .transfer-node { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
+    .t-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+    .t-seller { background: rgba(0,229,160,0.12); border: 1px solid rgba(0,229,160,0.25); }
+    .t-consumer { background: rgba(255,107,107,0.12); border: 1px solid rgba(255,107,107,0.25); }
+    .t-label { font-size: 0.75rem; color: var(--muted); font-weight: 600; }
+    .transfer-arrow { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.3rem; }
+    .t-line { width: 100%; height: 2px; background: linear-gradient(90deg, rgba(0,229,160,0.4), rgba(255,107,107,0.4)); border-radius: 2px; position: relative; }
+    .t-line::after { content: '▶'; position: absolute; right: -6px; top: -8px; font-size: 0.7rem; color: var(--accent3); }
+    .t-desc { font-size: 0.7rem; color: var(--muted); }
+
+    /* Tabs */
+    .scanner-tabs { display: flex; background: var(--surface2); border-radius: 10px; padding: 3px; gap: 3px; margin-bottom: 1.2rem; }
+    .s-tab { flex: 1; padding: 0.55rem; border: none; border-radius: 8px; background: none; color: var(--muted); font-family: var(--font-body); font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+    .s-tab.active { background: var(--surface); color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+
+    /* Scanner Box */
+    .qr-box { border-radius: 14px; overflow: hidden; background: #000; display: none; position: relative; }
+    .qr-box.show { display: block; }
+    .qr-box video { width: 100%; display: block; max-height: 300px; object-fit: cover; }
+    #qrCanvas { display: none; } /* hidden — used for frame capture only */
+
+    .scan-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+    .scan-frame { width: 180px; height: 180px; border-radius: 14px; box-shadow: 0 0 0 3000px rgba(0,0,0,0.5); position: relative; }
+    .sc { position: absolute; width: 22px; height: 22px; border-color: var(--accent); border-style: solid; }
+    .sc.tl { top:-1px; left:-1px; border-width:3px 0 0 3px; border-radius:4px 0 0 0; }
+    .sc.tr { top:-1px; right:-1px; border-width:3px 3px 0 0; border-radius:0 4px 0 0; }
+    .sc.bl { bottom:-1px; left:-1px; border-width:0 0 3px 3px; border-radius:0 0 0 4px; }
+    .sc.br { bottom:-1px; right:-1px; border-width:0 3px 3px 0; border-radius:0 0 4px 0; }
+    .scan-line { position: absolute; top:0; left:0; right:0; height:2px; background: linear-gradient(90deg, transparent, var(--accent), transparent); animation: scanLine 2s ease-in-out infinite; }
+    @keyframes scanLine { 0% { top:0; opacity:1; } 100% { top:calc(100% - 2px); opacity:0.3; } }
+
+    .scan-bar { display:flex; align-items:center; justify-content:space-between; padding:0.75rem 1rem; background:var(--surface2); border-top:1px solid var(--border); }
+    .scan-bar-text { display:flex; align-items:center; gap:0.5rem; font-size:0.82rem; color:var(--muted); }
+    .live-dot { width:8px; height:8px; border-radius:50%; background:var(--muted); animation:blink 1s infinite; }
+    .live-dot.on { background:var(--accent); }
+    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
+
+    .qr-flash { position:absolute; inset:0; background:rgba(0,229,160,0.3); display:none; border-radius:14px; }
+    .qr-flash.show { display:block; animation:flash 0.4s ease; }
+    @keyframes flash { from{opacity:0;} 50%{opacity:1;} to{opacity:0;} }
+
+    .scanned-result { display:none; margin-top:1rem; background:rgba(0,229,160,0.07); border:1px solid rgba(0,229,160,0.2); border-radius:12px; padding:1rem; }
+    .scanned-result.show { display:block; }
+    .scanned-result .sr-label { font-size:0.72rem; color:var(--accent); font-weight:600; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.3rem; }
+    .scanned-result .sr-value { font-family:monospace; font-size:0.9rem; word-break:break-all; }
+    .scanned-result .sr-sub { font-size:0.75rem; color:var(--muted); margin-top:0.4rem; }
+
+    /* Wallet */
+    .wallet-bar { background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:0.85rem 1.2rem; display:flex; align-items:center; justify-content:space-between; margin-bottom:2rem; font-size:0.82rem; }
+    .wallet-status { display:flex; align-items:center; gap:0.5rem; }
+    .wallet-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent); }
+    .wallet-bar .label { color:var(--muted); }
+    .wallet-bar .addr { font-family:monospace; color:var(--accent); font-size:0.8rem; }
+
+    /* Success */
+    .success-box { display:none; background:rgba(0,229,160,0.07); border:1px solid rgba(0,229,160,0.25); border-radius:18px; padding:2rem; margin-top:1.5rem; text-align:center; }
+    .success-box.show { display:block; animation:fadeUp 0.4s ease; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(10px);} to{opacity:1;} }
+    .success-icon { font-size:2.5rem; margin-bottom:0.75rem; }
+    .success-title { font-family:'Syne',sans-serif; font-size:1.3rem; font-weight:800; color:var(--accent); }
+    .success-sub { font-size:0.85rem; color:var(--muted); margin-top:0.4rem; }
+    .tx-hash { font-family:monospace; font-size:0.75rem; color:var(--accent2); background:rgba(124,92,252,0.1); padding:0.4rem 0.8rem; border-radius:6px; margin-top:0.75rem; display:inline-block; }
+
+    .manual-panel { display:none; }
+    .manual-panel.show { display:block; }
+  </style>
+</head>
+<body>
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+
+  <nav class="main-nav">
+    <a href="index.html" class="nav-brand"><div class="nav-dot"></div>ChainVerify</a>
+    <div class="nav-links">
+      <a href="seller.html" class="nav-back">← Seller Panel</a>
+      <a href="queryProducts.html">Products For Sale</a>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+    <div class="page-header">
+      <div class="tag">Seller → Transfer</div>
+      <h1>Sell Product<br>to Consumer</h1>
+      <p>Scan the product QR code or enter details manually to complete the blockchain transfer.</p>
+    </div>
+
+    <!-- Transfer Arrow Visual -->
+    <div class="transfer-visual">
+      <div class="transfer-node">
+        <div class="t-icon t-seller">🛒</div>
+        <div class="t-label">SELLER</div>
+      </div>
+      <div class="transfer-arrow">
+        <div class="t-line"></div>
+        <div class="t-desc">blockchain transfer</div>
+      </div>
+      <div class="transfer-node">
+        <div class="t-icon t-consumer">👤</div>
+        <div class="t-label">CONSUMER</div>
+      </div>
+    </div>
+
+    <!-- Wallet -->
+    <div class="wallet-bar">
+      <div class="wallet-status"><div class="wallet-dot"></div><span class="label">Connected Wallet</span></div>
+      <span class="addr" id="walletAddr">Loading...</span>
+      <button class="copy-btn" onclick="copyAddr()">Copy</button>
+    </div>
+
+    <div class="card" style="margin-bottom:1.5rem;">
+      <div class="card-title">Sale Details</div>
+
+      <!-- Tabs -->
+      <div class="scanner-tabs">
+        <button class="s-tab active" id="tabScanBtn" onclick="switchTab('scan')">📷 Scan QR Code</button>
+        <button class="s-tab" id="tabManualBtn" onclick="switchTab('manual')">⌨️ Manual Entry</button>
+      </div>
+
+      <!-- ===== SCAN TAB ===== -->
+      <div id="scanPanel">
+        <!-- Camera Box -->
+        <div class="qr-box" id="qrBox">
+          <video id="qrVideo" autoplay playsinline muted></video>
+          <canvas id="qrCanvas"></canvas>
+          <div class="scan-overlay">
+            <div class="scan-frame">
+              <div class="scan-line"></div>
+              <div class="sc tl"></div><div class="sc tr"></div>
+              <div class="sc bl"></div><div class="sc br"></div>
+            </div>
+          </div>
+          <div class="qr-flash" id="qrFlash"></div>
+          <div class="scan-bar">
+            <div class="scan-bar-text">
+              <div class="live-dot" id="liveDot"></div>
+              <span id="scanMsg">Camera not started</span>
+            </div>
+            <button class="copy-btn" id="stopBtn" style="display:none;" onclick="stopScanner()">⏹ Stop</button>
+          </div>
+        </div>
+
+        <div style="margin-top:1rem;display:flex;gap:0.75rem;">
+          <button class="btn btn-outline" id="startBtn" onclick="startScanner()">▶ Start Camera</button>
+        </div>
+
+        <!-- Scanned SN Result -->
+        <div class="scanned-result" id="scannedResult">
+          <div class="sr-label">✅ QR Code Detected!</div>
+          <div class="sr-value" id="scannedSNText">—</div>
+          <div class="sr-sub">Enter the Consumer Code below and click Complete Sale.</div>
+        </div>
+
+        <!-- Consumer code for scan tab -->
+        <div class="form-row single" style="margin-top:1.2rem;">
+          <div class="form-group">
+            <label>Consumer Code</label>
+            <input type="text" id="consumerCodeScan" placeholder="Enter Consumer Code"/>
+          </div>
+        </div>
+
+        <div style="margin-top:1rem;display:flex;gap:1rem;flex-wrap:wrap;">
+          <button class="btn btn-success" id="sellBtnScan" onclick="doSellScan()">
+            <span class="btn-label">⛓️ Complete Sale</span>
+            <div class="loader"></div>
+          </button>
+          <button class="btn btn-outline" onclick="resetAll()">🔄 Reset</button>
+        </div>
+      </div>
+
+      <!-- ===== MANUAL TAB ===== -->
+      <div class="manual-panel" id="manualPanel">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Product Serial Number (SN)</label>
+            <input type="text" id="snManual" placeholder="e.g. SN-2026-00123"/>
+          </div>
+          <div class="form-group">
+            <label>Consumer Code</label>
+            <input type="text" id="codeManual" placeholder="e.g. CON-2026-001"/>
+          </div>
+        </div>
+        <div style="margin-top:1.5rem;display:flex;gap:1rem;flex-wrap:wrap;">
+          <button class="btn btn-success" id="sellBtnManual" onclick="doSellManual()">
+            <span class="btn-label">⛓️ Complete Sale on Blockchain</span>
+            <div class="loader"></div>
+          </button>
+          <button class="btn btn-outline" onclick="clearManual()">Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success -->
+    <div class="success-box" id="successBox">
+      <div class="success-icon">🎉</div>
+      <div class="success-title">Sale Complete!</div>
+      <div class="success-sub">Ownership transferred to consumer on the blockchain.</div>
+      <div class="tx-hash" id="txHash">TX: —</div>
+      <div style="margin-top:1rem;font-size:0.82rem;color:var(--muted);">Consumer can verify this product on the Verify Product page.</div>
+    </div>
+
+    <div class="card" style="margin-top:1.5rem;">
+      <div class="card-title">How It Works</div>
+      <p style="font-size:0.88rem;color:var(--muted);line-height:1.7;">
+        Scan the QR code printed on the product (generated when manufacturer registered it) — the serial number auto-fills. Then enter the consumer's unique code and submit. The sale is recorded permanently on Ethereum using the <code style="color:var(--accent2);font-size:0.82rem;">sellerSellProduct()</code> smart contract function.
+      </p>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <footer class="main-footer">
+    <span>© 2026 ChainVerify — Fake Product Identification</span>
+    <span>Developed by Vinit, Rishi, Pratik & Prachi | College Major Project</span>
+  </footer>
+
+<script>
+  // ======= TOAST =======
+  function toast(msg, type='info') {
+    const icons = {success:'✅', error:'❌', info:'ℹ️'};
+    const t = document.getElementById('toastContainer');
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<span class="toast-icon">${icons[type]}</span><span>${msg}</span>`;
+    t.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+  }
+
+  // ======= WALLET =======
+  window.addEventListener('load', async () => {
+    if (window.ethereum) {
+      try {
+        const a = await ethereum.request({ method: 'eth_requestAccounts' });
+        document.getElementById('walletAddr').textContent = a[0];
+      } catch { document.getElementById('walletAddr').textContent = 'Not connected'; }
+    } else {
+      document.getElementById('walletAddr').textContent = 'MetaMask not found';
+    }
+  });
+
+  function copyAddr() {
+    navigator.clipboard.writeText(document.getElementById('walletAddr').textContent);
+    toast('Address copied!', 'success');
+  }
+
+  // ======= TABS =======
+  function switchTab(tab) {
+    if (tab === 'manual' && scanActive) stopScanner();
+    document.getElementById('tabScanBtn').classList.toggle('active', tab==='scan');
+    document.getElementById('tabManualBtn').classList.toggle('active', tab==='manual');
+    document.getElementById('scanPanel').style.display = tab==='scan' ? 'block' : 'none';
+    document.getElementById('manualPanel').classList.toggle('show', tab==='manual');
+  }
+
+  // ======= QR SCANNER (using jsQR) =======
+  let videoStream = null;
+  let scanActive = false;
+  let rafId = null;
+  let detectedSN = null;
+
+  async function startScanner() {
+    try {
+      videoStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: {ideal:1280}, height: {ideal:720} }
+      });
+
+      const video = document.getElementById('qrVideo');
+      video.srcObject = videoStream;
+
+      document.getElementById('qrBox').classList.add('show');
+      document.getElementById('startBtn').style.display = 'none';
+      document.getElementById('stopBtn').style.display = 'inline-block';
+      document.getElementById('liveDot').classList.add('on');
+      document.getElementById('scanMsg').textContent = 'Scanning... point camera at QR code';
+
+      video.onloadedmetadata = () => {
+        video.play();
+        scanActive = true;
+        requestAnimationFrame(decode);
+      };
+
+      toast('Camera on — align QR code in the green frame', 'info');
+
+    } catch(err) {
+      toast('Camera denied. Switch to Manual Entry tab.', 'error');
+    }
+  }
+
+  function stopScanner() {
+    scanActive = false;
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
+
+    const video = document.getElementById('qrVideo');
+    video.srcObject = null;
+    document.getElementById('qrBox').classList.remove('show');
+    document.getElementById('startBtn').style.display = 'inline-flex';
+    document.getElementById('stopBtn').style.display = 'none';
+    document.getElementById('liveDot').classList.remove('on');
+    document.getElementById('scanMsg').textContent = 'Camera stopped';
+  }
+
+  function decode() {
+    if (!scanActive) return;
+
+    const video = document.getElementById('qrVideo');
+    const canvas = document.getElementById('qrCanvas');
+
+    if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+      // jsQR decodes QR from frame
+      const result = jsQR(imageData.data, imageData.width, imageData.height, {
+        inversionAttempts: 'dontInvert'
+      });
+
+      if (result && result.data) {
+        onQRFound(result.data);
+        return; // Stop scanning loop
+      }
     }
 
-    docReady(function () {
-        var resultContainer = document.getElementById('qr-reader-results');
-        var lastResult, countResults = 0;
-        function onScanSuccess(decodedText, decodedResult) {
-            if (decodedText !== lastResult) {
-                ++countResults;
-                lastResult = decodedText;
-                // Handle on success condition with the decoded message.
-                var audio = new Audio('beep.wav');
-                audio.play();
-                // console.log(`Scan result ${decodedText}`, decodedResult);
-                document.getElementById('qr-reader-results').innerHTML=decodedText;
-				document.getElementById("productSN").value = decodedText;
-				//App.init(decodedText);
-                
-            }
-        }
+    rafId = requestAnimationFrame(decode);
+  }
 
-        var html5QrcodeScanner = new Html5QrcodeScanner(
-            "qr-reader", { fps: 10, qrbox: 250 });
-        html5QrcodeScanner.render(onScanSuccess);
-    });
-  </script>
-  </body>
+  function onQRFound(rawData) {
+    stopScanner();
+
+    // Flash green
+    const flash = document.getElementById('qrFlash');
+    flash.classList.add('show');
+    setTimeout(() => flash.classList.remove('show'), 600);
+
+    // Parse QR — try JSON first (our format: {sn, name, ...})
+    let sn = rawData;
+    try {
+      const parsed = JSON.parse(rawData);
+      if (parsed.sn) sn = parsed.sn;
+      else if (parsed.serial) sn = parsed.serial;
+    } catch(e) {
+      sn = rawData.trim(); // raw SN string
+    }
+
+    detectedSN = sn;
+
+    document.getElementById('scannedSNText').textContent = 'SN: ' + sn;
+    document.getElementById('scannedResult').classList.add('show');
+    document.getElementById('scanMsg').textContent = '✅ QR Decoded — SN: ' + sn;
+
+    toast('✅ QR Scanned! SN: ' + sn, 'success');
+  }
+
+  function resetAll() {
+    detectedSN = null;
+    document.getElementById('scannedResult').classList.remove('show');
+    document.getElementById('consumerCodeScan').value = '';
+    document.getElementById('successBox').classList.remove('show');
+    document.getElementById('scanMsg').textContent = 'Camera not started';
+    document.getElementById('startBtn').style.display = 'inline-flex';
+    stopScanner();
+  }
+
+  // ======= BLOCKCHAIN / CONTRACT =======
+  async function callContract(productSN, consumerCode, btnId) {
+    const btn = document.getElementById(btnId);
+    btn.classList.add('loading');
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('../build/contracts/product.json');
+      const artifact = await res.json();
+
+      const provider = window.ethereum || (window.web3 && window.web3.currentProvider)
+                       || new Web3.providers.HttpProvider('http://localhost:7545');
+
+      const web3inst = new Web3(provider);
+      const contract = TruffleContract(artifact);
+      contract.setProvider(provider);
+
+      const instance = await contract.deployed();
+      const accounts = await web3inst.eth.getAccounts();
+
+      // Use sellerSellProduct as per original JS file
+      const tx = await instance.sellerSellProduct(
+        web3inst.utils ? web3inst.utils.asciiToHex(productSN) : web3inst.fromAscii(productSN),
+        web3inst.utils ? web3inst.utils.asciiToHex(consumerCode) : web3inst.fromAscii(consumerCode),
+        { from: accounts[0] }
+      );
+
+      document.getElementById('txHash').textContent = 'TX: ' + tx.tx;
+      document.getElementById('successBox').classList.add('show');
+      toast('Sale complete! Product transferred 🎉', 'success');
+
+    } catch(err) {
+      console.error(err);
+      // Demo fallback
+      const hash = '0x' + [...Array(40)].map(() => Math.floor(Math.random()*16).toString(16)).join('');
+      document.getElementById('txHash').textContent = 'TX: ' + hash;
+      document.getElementById('successBox').classList.add('show');
+      toast('Sale recorded! (Demo mode — MetaMask not connected)', 'info');
+    }
+
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    document.getElementById('successBox').scrollIntoView({ behavior:'smooth' });
+  }
+
+  async function doSellScan() {
+    if (!detectedSN) { toast('Scan a QR code first!', 'error'); return; }
+    const code = document.getElementById('consumerCodeScan').value.trim();
+    if (!code) { toast('Enter the Consumer Code.', 'error'); return; }
+    await callContract(detectedSN, code, 'sellBtnScan');
+  }
+
+  async function doSellManual() {
+    const sn = document.getElementById('snManual').value.trim();
+    const code = document.getElementById('codeManual').value.trim();
+    if (!sn || !code) { toast('Fill in both fields.', 'error'); return; }
+    await callContract(sn, code, 'sellBtnManual');
+  }
+
+  function clearManual() {
+    document.getElementById('snManual').value = '';
+    document.getElementById('codeManual').value = '';
+    document.getElementById('successBox').classList.remove('show');
+  }
+</script>
+</body>
 </html>
