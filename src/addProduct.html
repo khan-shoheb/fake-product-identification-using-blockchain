@@ -218,45 +218,56 @@
 
     // ─── Add Product ──────────────────────────────────────────────────────────
     async function addProduct() {
-      const mfgId = document.getElementById('manufacturerId').value.trim();
-      const name  = document.getElementById('productName').value.trim();
-      const sn    = document.getElementById('productSN').value.trim();
-      const brand = document.getElementById('productBrand').value.trim();
-      const price = document.getElementById('productPrice').value.trim();
+  const mfgId = document.getElementById('manufacturerId').value.trim();
+  const name  = document.getElementById('productName').value.trim();
+  const sn    = document.getElementById('productSN').value.trim();
+  const brand = document.getElementById('productBrand').value.trim();
+  const price = document.getElementById('productPrice').value.trim();
 
-      if (!mfgId || !name || !sn || !brand || !price) {
-        toast('Please fill in all fields.', 'error');
-        return;
-      }
+  if (!mfgId || !name || !sn || !brand || !price) {
+    toast('Please fill in all fields.', 'error');
+    return;
+  }
 
-      const btn = document.getElementById('addBtn');
-      btn.classList.add('loading');
-      btn.disabled = true;
+  const btn = document.getElementById('addBtn');
+  btn.classList.add('loading');
+  btn.disabled = true;
 
-      try {
-        const res      = await fetch('../build/contracts/product.json');
-        const artifact = await res.json();
-        const provider = window.ethereum || window.web3.currentProvider;
-        const web3     = new Web3(provider);
-        const contract = TruffleContract(artifact);
-        contract.setProvider(provider);
-        const instance = await contract.deployed();
-        const accounts = await web3.eth.getAccounts();
+  try {
+    const res = await fetch('http://localhost:5000/api/product/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-role': 'manufacturer'
+      },
+      body: JSON.stringify({
+        _manufacturerID: mfgId,
+        _productName: name,
+        _productSN: sn,
+        _productBrand: brand,
+        _productPrice: parseInt(price)
+      })
+    });
 
-        await instance.addProduct(mfgId, name, sn, brand, parseInt(price), { from: accounts[0] });
-        toast('Product added to blockchain! 🎉', 'success');
+    const data = await res.json();
 
-      } catch (err) {
-        console.error(err);
-        toast('Transaction sent! (Demo: showing QR code)', 'info');
-      }
-
-      // Show QR regardless (demo mode also works)
-      showQR(sn || 'DEMO-SN-001', name || 'Demo Product');
-
+    if (!res.ok) {
+      toast('Error: ' + (data.error || 'Unknown'), 'error');
       btn.classList.remove('loading');
       btn.disabled = false;
+      return;
     }
+
+    toast('Product added to blockchain! 🎉', 'success');
+    showQR(sn, name);
+
+  } catch (err) {
+    toast('Backend not reachable! Is server running on port 5000?', 'error');
+  }
+
+  btn.classList.remove('loading');
+  btn.disabled = false;
+}
 
     // ─── Show QR ──────────────────────────────────────────────────────────────
     function showQR(sn, name) {

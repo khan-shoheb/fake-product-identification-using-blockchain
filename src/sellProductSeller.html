@@ -385,48 +385,44 @@
 
   // ======= BLOCKCHAIN / CONTRACT =======
   async function callContract(productSN, consumerCode, btnId) {
-    const btn = document.getElementById(btnId);
-    btn.classList.add('loading');
-    btn.disabled = true;
+  const btn = document.getElementById(btnId);
+  btn.classList.add('loading');
+  btn.disabled = true;
 
-    try {
-      const res = await fetch('../build/contracts/product.json');
-      const artifact = await res.json();
+  try {
+    const res = await fetch(
+      'http://localhost:5000/api/seller/sell',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-role': 'seller'
+        },
+        body: JSON.stringify({
+          _productSN: productSN,
+          _consumerCode: consumerCode
+        })
+      }
+    );
 
-      const provider = window.ethereum || (window.web3 && window.web3.currentProvider)
-                       || new Web3.providers.HttpProvider('http://localhost:7545');
+    const data = await res.json();
 
-      const web3inst = new Web3(provider);
-      const contract = TruffleContract(artifact);
-      contract.setProvider(provider);
-
-      const instance = await contract.deployed();
-      const accounts = await web3inst.eth.getAccounts();
-
-      // Use sellerSellProduct as per original JS file
-      const tx = await instance.sellerSellProduct(
-        web3inst.utils ? web3inst.utils.asciiToHex(productSN) : web3inst.fromAscii(productSN),
-        web3inst.utils ? web3inst.utils.asciiToHex(consumerCode) : web3inst.fromAscii(consumerCode),
-        { from: accounts[0] }
-      );
-
-      document.getElementById('txHash').textContent = 'TX: ' + tx.tx;
+    if (!res.ok) {
+      toast('Error: ' + (data.error || 'Unknown'), 'error');
+    } else {
+      document.getElementById('txHash').textContent = 'TX: ' + (data.txHash || 'confirmed');
       document.getElementById('successBox').classList.add('show');
       toast('Sale complete! Product transferred 🎉', 'success');
-
-    } catch(err) {
-      console.error(err);
-      // Demo fallback
-      const hash = '0x' + [...Array(40)].map(() => Math.floor(Math.random()*16).toString(16)).join('');
-      document.getElementById('txHash').textContent = 'TX: ' + hash;
-      document.getElementById('successBox').classList.add('show');
-      toast('Sale recorded! (Demo mode — MetaMask not connected)', 'info');
+      document.getElementById('successBox').scrollIntoView({ behavior:'smooth' });
     }
 
-    btn.classList.remove('loading');
-    btn.disabled = false;
-    document.getElementById('successBox').scrollIntoView({ behavior:'smooth' });
+  } catch(err) {
+    toast('Backend not reachable! Is server running on port 5000?', 'error');
   }
+
+  btn.classList.remove('loading');
+  btn.disabled = false;
+}
 
   async function doSellScan() {
     if (!detectedSN) { toast('Scan a QR code first!', 'error'); return; }

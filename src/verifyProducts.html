@@ -26,7 +26,6 @@
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
 
-    /* Scanner */
     .scanner-box {
       position: relative; border-radius: 16px; overflow: hidden;
       background: #000; aspect-ratio: 4/3; margin-bottom: 1rem;
@@ -59,7 +58,6 @@
     .scan-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: blink 1s infinite; }
     @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
 
-    /* Result Card */
     .result-card {
       border-radius: 20px; padding: 2rem; margin-top: 1.5rem;
       display: none; animation: fadeUp 0.4s ease;
@@ -78,7 +76,6 @@
     .detail-label { font-size: 0.72rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.3rem; }
     .detail-value { font-size: 0.9rem; font-weight: 500; word-break: break-all; }
 
-    /* Scan History */
     .history-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; }
     .history-item {
       display: flex; align-items: center; justify-content: space-between;
@@ -92,7 +89,6 @@
     .h-badge.fake    { background: rgba(255,107,107,0.15); color: #ff6b6b; }
     .h-badge.unknown { background: rgba(255,200,0,0.15);   color: #ffc800; }
 
-    /* Shake for fake */
     @keyframes shake {
       0%,100% { transform: translateX(0); }
       20%      { transform: translateX(-8px); }
@@ -181,7 +177,6 @@
       </div>
       <div class="result-details" id="resultDetails"></div>
 
-      <!-- Extra product info from QR JSON -->
       <div id="extraInfo" style="margin-top:1rem;display:none;">
         <div class="detail-label" style="margin-bottom:0.5rem;">📦 Product Info from QR</div>
         <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:1rem;">
@@ -189,13 +184,12 @@
         </div>
       </div>
 
-      <!-- Scan Again -->
       <div style="margin-top:1.5rem;">
         <button class="btn btn-outline" onclick="scanAgain()">🔄 Scan Another Product</button>
       </div>
     </div>
 
-    <!-- Scan History (session) -->
+    <!-- Scan History -->
     <div class="card" id="historyCard" style="margin-top:1.5rem;display:none;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
         <div class="card-title" style="margin:0;">📋 Scan History (This Session)</div>
@@ -313,12 +307,9 @@
     }
 
     // ─── Handle Scanned QR Data ───────────────────────────────────────────────
-    // addProduct.html stores: {"sn":"...","name":"...","timestamp":...,"chain":"ethereum"}
-    // Random/fake QR will NOT match this format → marked as FAKE
-    function handleScannedData(raw) {
+    async function handleScannedData(raw) {
       let sn = '', name = '', parsedObj = null, isChainVerifyQR = false;
 
-      // Try JSON parse (our format)
       try {
         parsedObj = JSON.parse(raw);
         if (parsedObj && parsedObj.sn && parsedObj.chain === 'ethereum') {
@@ -327,7 +318,6 @@
           isChainVerifyQR = true;
         }
       } catch (e) {
-        // Not JSON — try "SN,Code" comma format
         const parts = raw.split(',');
         sn   = (parts[0] || '').trim();
         name = (parts[1] || '').trim();
@@ -338,45 +328,48 @@
       switchTab('manual');
 
       if (isChainVerifyQR) {
-        // Our own QR = Genuine
-        showResult('genuine', sn, parsedObj);
+        // ✅ FIX: Backend se verify karo, direct genuine mat dikhao
+        await verifyFromBackend(sn, name, parsedObj);
       } else if (!sn || sn.length < 3) {
-        // Gibberish QR
         showResult('fake', raw.substring(0, 30), null);
       } else {
-        // Has SN but not our format = Unregistered
         showResult('unknown', sn, null);
       }
+    }
+
+    // ─── Backend Verify (QR + Manual dono ke liye) ────────────────────────────
+    async function verifyFromBackend(sn, code, qrData) {
+      const btn = document.getElementById('verifyBtn');
+      btn.classList.add('loading'); btn.disabled = true;
+
+      try {
+        const res = await fetch(
+          `http://localhost:5000/api/product/verify/${encodeURIComponent(sn)}?consumerCode=${encodeURIComponent(code)}`,
+          { headers: { 'x-user-role': 'consumer' } }
+        );
+        const data = await res.json();
+
+        if (!res.ok) {
+          toast('Verification failed: ' + (data.error || 'Unknown error'), 'error');
+          showResult('fake', sn, null);
+        } else {
+          showResult(data.verified ? 'genuine' : 'fake', sn, qrData);
+        }
+      } catch (err) {
+        toast('Backend not reachable. Is server running on port 5000?', 'error');
+        showResult('unknown', sn, null);
+      }
+
+      btn.classList.remove('loading'); btn.disabled = false;
     }
 
     // ─── Manual Verify ────────────────────────────────────────────────────────
     async function verifyProduct() {
       const sn   = document.getElementById('productSN').value.trim();
       const code = document.getElementById('consumerCode').value.trim();
-      if (!sn) { toast('Please enter Product SN.', 'error'); return; }
-
-      const btn = document.getElementById('verifyBtn');
-      btn.classList.add('loading'); btn.disabled = true;
-
-      try {
-        const res      = await fetch('../build/contracts/product.json');
-        const artifact = await res.json();
-        const web3     = new Web3(window.ethereum);
-        const contract = TruffleContract(artifact);
-        contract.setProvider(window.ethereum);
-        const instance = await contract.deployed();
-        const result   = await instance.verifyProduct(
-          web3.fromAscii(sn), web3.fromAscii(code)
-        );
-        showResult(result ? 'genuine' : 'fake', sn, null);
-      } catch (err) {
-        // Demo fallback
-        const looksLegit = /^SN[-A-Z0-9]{4,}$/i.test(sn);
-        showResult(looksLegit ? 'genuine' : 'fake', sn, null);
-        toast('Demo mode — blockchain not connected.', 'info');
-      }
-
-      btn.classList.remove('loading'); btn.disabled = false;
+      if (!sn)   { toast('Please enter Product SN.', 'error'); return; }
+      if (!code) { toast('Please enter Consumer Code.', 'error'); return; }
+      await verifyFromBackend(sn, code, null);
     }
 
     // ─── Show Result ──────────────────────────────────────────────────────────
@@ -404,7 +397,6 @@
       const c = cfg[status] || cfg.unknown;
       card.className = `result-card show ${status}`;
 
-      // Shake animation only for fake
       if (status === 'fake') {
         card.classList.add('shake');
         setTimeout(() => card.classList.remove('shake'), 600);
@@ -433,7 +425,6 @@
         </div>
       `;
 
-      // Extra info from QR JSON
       const extraDiv = document.getElementById('extraInfo');
       if (qrData && qrData.sn) {
         extraDiv.style.display = 'block';

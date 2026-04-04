@@ -9,12 +9,19 @@
   },
   "devDependencies": {
     "html5-qrcode": "^2.2.0",
-    "lite-server": "2.6"
+    "lite-server": "2.6",
+    "supertest": "^7.2.2"
   },
   "dependencies": {
     "@truffle/hdwallet-provider": "^2.0.15",
     "compile": "^0.0.2",
     "cors": "^2.8.5",
+    "dotenv": "^17.4.0",
+    "express-rate-limit": "^8.3.2",
+    "joi": "^18.1.2",
+    "morgan": "^1.10.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "truffle": "^5.11.5"
   }
 }

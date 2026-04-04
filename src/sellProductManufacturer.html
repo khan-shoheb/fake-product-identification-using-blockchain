@@ -7,6 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/shared.css">
+  <!-- jsQR library for QR code scanning -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
   <style>
     .blob { position: fixed; border-radius: 50%; filter: blur(130px); opacity: 0.1; pointer-events: none; z-index: 0; }
     .blob-1 { width: 450px; height: 450px; background: #7c5cfc; top: -100px; right: -80px; }
@@ -290,35 +292,74 @@
       document.getElementById('successBox').classList.remove('show');
     }
 
-    async function sellProduct() {
-      const sn = document.getElementById('productSN').value.trim();
-      const code = document.getElementById('sellerCode').value.trim();
-      if (!sn || !code) { toast('Please fill in both fields.', 'error'); return; }
+   async function sellProduct() {
+  const sn = document.getElementById('productSN').value.trim();
+  const code = document.getElementById('sellerCode').value.trim();
+  if (!sn || !code) { toast('Please fill in both fields.', 'error'); return; }
 
-      const btn = document.getElementById('sellBtn');
-      btn.classList.add('loading'); btn.disabled = true;
+  const btn = document.getElementById('sellBtn');
+  btn.classList.add('loading'); btn.disabled = true;
 
-      try {
-        const res = await fetch('../build/contracts/product.json');
-        const artifact = await res.json();
-        const web3 = new Web3(window.ethereum);
-        const contract = TruffleContract(artifact);
-        contract.setProvider(window.ethereum);
-        const instance = await contract.deployed();
-        const accounts = await web3.eth.getAccounts();
-        const tx = await instance.sellProductToSeller(sn, code, { from: accounts[0] });
-        document.getElementById('txHash').textContent = 'TX: ' + tx.tx;
-        document.getElementById('successBox').classList.add('show');
-        toast('Product transferred to seller! 🎉', 'success');
-      } catch (err) {
-        const fakeHash = '0x' + Math.random().toString(16).substr(2, 40);
-        document.getElementById('txHash').textContent = 'TX: ' + fakeHash;
-        document.getElementById('successBox').classList.add('show');
-        toast('Transfer recorded! (Demo mode)', 'info');
-      }
+  try {
+    const res = await fetch('http://localhost:5000/api/manufacturer/sell', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-role': 'manufacturer'
+      },
+      body: JSON.stringify({
+        _productSN: sn,
+        _sellerCode: code
+      })
+    });
 
-      btn.classList.remove('loading'); btn.disabled = false;
+    const data = await res.json();
+
+    if (!res.ok) {
+      toast('Error: ' + (data.error || 'Unknown'), 'error');
+    } else {
+      document.getElementById('txHash').textContent = 'TX: ' + (data.txHash || 'confirmed');
+      document.getElementById('successBox').classList.add('show');
+      toast('Product transferred to seller! 🎉', 'success');
+      document.getElementById('successBox').scrollIntoView({ behavior: 'smooth' });
     }
+
+  } catch (err) {
+    toast('Backend not reachable! Is server running on port 5000?', 'error');
+  }
+
+  btn.classList.remove('loading'); btn.disabled = false;
+}
+    // --- QR code scanning logic using jsQR ---
+    // Make sure jsQR.js is loaded in your HTML
+    const video = document.getElementById('video');
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+
+    function scanTick() {
+      if (scannerOpen && video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.height = video.videoHeight;
+        canvas.width = video.videoWidth;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        if (window.jsQR) {
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
+          if (code && code.data) {
+            document.getElementById('productSN').value = code.data.trim();
+            toast('QR scanned: ' + code.data, 'success');
+            toggleScanner();
+            // Optionally, auto-submit:
+            // sellProduct();
+          }
+        }
+      }
+      if (scannerOpen) requestAnimationFrame(scanTick);
+    }
+
+    // Start scanning when scanner is toggled on
+    document.getElementById('scanToggleBtn').addEventListener('click', () => {
+      if (!scannerOpen) setTimeout(scanTick, 500);
+    });
   </script>
 </body>
 </html>
