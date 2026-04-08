@@ -10,6 +10,16 @@
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
   <style>
+        .upload-drop-zone {
+          border: 2px dashed var(--accent); border-radius: 16px;
+          padding: 2.5rem 1rem; text-align: center; cursor: pointer;
+          background: rgba(124,92,252,0.04); transition: background 0.2s;
+          margin-bottom: 1rem;
+        }
+        .upload-drop-zone:hover { background: rgba(124,92,252,0.10); }
+        .upload-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .upload-title { font-family: 'Syne',sans-serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 0.3rem; }
+        .upload-sub   { font-size: 0.82rem; color: var(--muted); }
     .blob { position: fixed; border-radius: 50%; filter: blur(130px); opacity: 0.12; pointer-events: none; z-index: 0; }
     .blob-1 { width: 400px; height: 400px; background: #7c5cfc; top: -100px; right: 0; }
 
@@ -121,6 +131,7 @@
     <div class="card" style="margin-bottom:1.5rem;">
       <div class="verify-tabs">
         <button class="v-tab active" onclick="switchTab('qr')">📷 Scan QR Code</button>
+        <button class="v-tab" onclick="switchTab('upload')">🖼️ Upload Image</button>
         <button class="v-tab" onclick="switchTab('manual')">⌨️ Enter Manually</button>
       </div>
 
@@ -161,6 +172,28 @@
         </div>
         <button class="btn btn-primary" id="verifyBtn" onclick="verifyProduct()">
           <span class="btn-label">🔍 Verify Product</span>
+          <div class="loader"></div>
+        </button>
+      </div>
+
+      <!-- Upload Image Tab -->
+      <div class="tab-panel" id="tab-upload">
+        <div class="upload-drop-zone" id="uploadZone" onclick="document.getElementById('imageInput').click()">
+          <input type="file" id="imageInput" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
+          <div class="upload-icon">🖼️</div>
+          <div class="upload-title">Click or Drag & Drop Image</div>
+          <div class="upload-sub">Upload product photo or QR code image (JPG, PNG, WEBP)</div>
+        </div>
+        <div id="imagePreviewWrap" style="display:none; margin-bottom:1rem;">
+          <img id="imagePreview" style="width:100%; max-height:220px; object-fit:contain; border-radius:12px; border:1px solid var(--border);"/>
+          <canvas id="uploadCanvas" style="display:none;"></canvas>
+        </div>
+        <div id="uploadStatus" class="scanner-status" style="display:none;">
+          <div class="scan-dot"></div>
+          <span id="uploadStatusText">Processing image...</span>
+        </div>
+        <button class="btn btn-primary" id="uploadVerifyBtn" style="display:none;" onclick="verifyUploadedImage()">
+          <span class="btn-label">🔍 Verify from Image</span>
           <div class="loader"></div>
         </button>
       </div>
@@ -228,10 +261,11 @@
     // ─── Tab Switch ───────────────────────────────────────────────────────────
     function switchTab(tab) {
       document.querySelectorAll('.v-tab').forEach((t, i) =>
-        t.classList.toggle('active', tab === 'qr' ? i === 0 : i === 1)
+        t.classList.toggle('active', (tab==='qr'&&i===0)||(tab==='manual'&&i===1)||(tab==='upload'&&i===2))
       );
-      document.getElementById('tab-qr').classList.toggle('active',     tab === 'qr');
-      document.getElementById('tab-manual').classList.toggle('active', tab === 'manual');
+      document.getElementById('tab-qr').classList.toggle('active',     tab==='qr');
+      document.getElementById('tab-manual').classList.toggle('active', tab==='manual');
+      document.getElementById('tab-upload').classList.toggle('active', tab==='upload');
     }
 
     // ─── Scanner State ────────────────────────────────────────────────────────
@@ -486,6 +520,74 @@
       scanHistory = [];
       document.getElementById('historyCard').style.display = 'none';
     }
+// ─── Image Upload Handler ─────────────────────────────────────────────────────
+let uploadedImageData = null;
+
+function handleImageUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = document.getElementById('imagePreview');
+    img.src = e.target.result;
+    document.getElementById('imagePreviewWrap').style.display = 'block';
+    document.getElementById('uploadVerifyBtn').style.display  = 'inline-flex';
+    uploadedImageData = e.target.result;
+    toast('Image loaded! Click "Verify from Image" to proceed.', 'info');
+  };
+  reader.readAsDataURL(file);
+}
+
+async function verifyUploadedImage() {
+  if (!uploadedImageData) { toast('Please upload an image first.', 'error'); return; }
+
+  const statusDiv  = document.getElementById('uploadStatus');
+  const statusText = document.getElementById('uploadStatusText');
+  statusDiv.style.display = 'flex';
+  statusText.textContent  = 'Scanning for QR code in image...';
+
+  const img    = document.getElementById('imagePreview');
+  const canvas = document.getElementById('uploadCanvas');
+  const ctx2   = canvas.getContext('2d', { willReadFrequently: true });
+  canvas.width  = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  ctx2.drawImage(img, 0, 0);
+
+  let imageData2;
+  try { imageData2 = ctx2.getImageData(0, 0, canvas.width, canvas.height); }
+  catch(e) { toast('Could not read image data.','error'); return; }
+
+  const code = jsQR(imageData2.data, imageData2.width, imageData2.height, { inversionAttempts:'dontInvert' });
+
+  if (code && code.data) {
+    statusText.textContent = '✅ QR code found in image!';
+    toast('QR code detected in image!', 'success');
+    await handleScannedData(code.data);
+  } else {
+    statusText.textContent = 'No QR code found. Try manual entry.';
+    toast('No QR code found in image. Use manual entry tab.', 'warning');
+    document.getElementById('productSN').value = '';
+    switchTab('manual');
+  }
+}
+
+// ─── Drag & Drop Support ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const zone = document.getElementById('uploadZone');
+  if (!zone) return;
+  zone.addEventListener('dragover',  e => { e.preventDefault(); zone.style.background = 'rgba(124,92,252,0.14)'; });
+  zone.addEventListener('dragleave', e => { zone.style.background = ''; });
+  zone.addEventListener('drop',      e => {
+    e.preventDefault(); zone.style.background = '';
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      document.getElementById('imageInput').files = e.dataTransfer.files;
+      handleImageUpload({ target: { files: e.dataTransfer.files } });
+    } else {
+      toast('Please drop an image file.', 'error');
+    }
+  });
+});
   </script>
 </body>
 </html>

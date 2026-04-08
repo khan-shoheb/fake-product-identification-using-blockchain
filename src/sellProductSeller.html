@@ -9,7 +9,6 @@
   <link rel="stylesheet" href="css/shared.css">
   <script src="js/web3.min.js"></script>
   <script src="js/truffle-contract.js"></script>
-  <!-- jsQR library - actual QR code decoder -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
   <style>
     .blob { position: fixed; border-radius: 50%; filter: blur(130px); opacity: 0.1; pointer-events: none; z-index: 0; }
@@ -32,14 +31,37 @@
     .s-tab { flex: 1; padding: 0.55rem; border: none; border-radius: 8px; background: none; color: var(--muted); font-family: var(--font-body); font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
     .s-tab.active { background: var(--surface); color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
 
-    /* Scanner Box */
-    .qr-box { border-radius: 14px; overflow: hidden; background: #000; display: none; position: relative; }
-    .qr-box.show { display: block; }
-    .qr-box video { width: 100%; display: block; max-height: 300px; object-fit: cover; }
-    #qrCanvas { display: none; } /* hidden — used for frame capture only */
+    /* Tab Panels */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
 
+    /* Scanner Box */
+    .qr-box {
+      border-radius: 14px;
+      overflow: hidden;
+      background: #000;
+      margin-bottom: 1rem;
+      border: 1px solid var(--border);
+    }
+    .qr-camera-stage {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      min-height: 260px;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .qr-box video {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+    #qrCanvas { display: none; }
     .scan-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
-    .scan-frame { width: 180px; height: 180px; border-radius: 14px; box-shadow: 0 0 0 3000px rgba(0,0,0,0.5); position: relative; }
+    .scan-frame { width: clamp(130px, 32%, 220px); aspect-ratio: 1 / 1; border-radius: 14px; box-shadow: 0 0 0 3000px rgba(0,0,0,0.5); position: relative; }
     .sc { position: absolute; width: 22px; height: 22px; border-color: var(--accent); border-style: solid; }
     .sc.tl { top:-1px; left:-1px; border-width:3px 0 0 3px; border-radius:4px 0 0 0; }
     .sc.tr { top:-1px; right:-1px; border-width:3px 3px 0 0; border-radius:0 4px 0 0; }
@@ -47,17 +69,32 @@
     .sc.br { bottom:-1px; right:-1px; border-width:0 3px 3px 0; border-radius:0 0 4px 0; }
     .scan-line { position: absolute; top:0; left:0; right:0; height:2px; background: linear-gradient(90deg, transparent, var(--accent), transparent); animation: scanLine 2s ease-in-out infinite; }
     @keyframes scanLine { 0% { top:0; opacity:1; } 100% { top:calc(100% - 2px); opacity:0.3; } }
-
-    .scan-bar { display:flex; align-items:center; justify-content:space-between; padding:0.75rem 1rem; background:var(--surface2); border-top:1px solid var(--border); }
-    .scan-bar-text { display:flex; align-items:center; gap:0.5rem; font-size:0.82rem; color:var(--muted); }
+    .scan-bar { display:flex; align-items:center; justify-content:space-between; padding:0.55rem 0.8rem; background:rgba(17,17,24,0.92); border-top:1px solid var(--border); }
+    .scan-bar-text { display:flex; align-items:center; gap:0.45rem; font-size:0.78rem; color:var(--muted); }
     .live-dot { width:8px; height:8px; border-radius:50%; background:var(--muted); animation:blink 1s infinite; }
     .live-dot.on { background:var(--accent); }
     @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
-
     .qr-flash { position:absolute; inset:0; background:rgba(0,229,160,0.3); display:none; border-radius:14px; }
     .qr-flash.show { display:block; animation:flash 0.4s ease; }
     @keyframes flash { from{opacity:0;} 50%{opacity:1;} to{opacity:0;} }
 
+    /* Upload Zone */
+    .upload-drop-zone {
+      border: 2px dashed var(--accent); border-radius: 14px;
+      padding: 2rem 1rem; text-align: center; cursor: pointer;
+      background: rgba(0,229,160,0.04); transition: background 0.2s;
+      margin-bottom: 1rem;
+    }
+    .upload-drop-zone:hover { background: rgba(0,229,160,0.10); }
+    .upload-icon { font-size: 2.2rem; margin-bottom: 0.5rem; }
+    .upload-title { font-family: 'Syne',sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .upload-sub { font-size: 0.8rem; color: var(--muted); }
+    .upload-preview-wrap { margin-bottom: 1rem; display: none; }
+    .upload-preview-wrap img { width: 100%; max-height: 220px; object-fit: contain; border-radius: 12px; border: 1px solid var(--border); }
+    .upload-status { display: none; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: var(--muted); margin-bottom: 0.75rem; }
+    .upload-status.show { display: flex; }
+
+    /* Scanned Result */
     .scanned-result { display:none; margin-top:1rem; background:rgba(0,229,160,0.07); border:1px solid rgba(0,229,160,0.2); border-radius:12px; padding:1rem; }
     .scanned-result.show { display:block; }
     .scanned-result .sr-label { font-size:0.72rem; color:var(--accent); font-weight:600; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.3rem; }
@@ -80,8 +117,37 @@
     .success-sub { font-size:0.85rem; color:var(--muted); margin-top:0.4rem; }
     .tx-hash { font-family:monospace; font-size:0.75rem; color:var(--accent2); background:rgba(124,92,252,0.1); padding:0.4rem 0.8rem; border-radius:6px; margin-top:0.75rem; display:inline-block; }
 
-    .manual-panel { display:none; }
-    .manual-panel.show { display:block; }
+    .tab-panel.active .qr-box {
+      animation: scannerReveal 0.35s ease both;
+    }
+    .tab-panel.active .scan-frame {
+      animation: framePop 0.45s ease both;
+    }
+    @keyframes scannerReveal {
+      from { opacity: 0; transform: translateY(8px) scale(0.995); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes framePop {
+      from { opacity: 0; transform: scale(0.94); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .scan-line,
+      .tab-panel.active .qr-box,
+      .tab-panel.active .scan-frame,
+      .success-box.show {
+        animation: none !important;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .transfer-visual { padding: 1rem; }
+      .wallet-bar { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+      .wallet-bar .addr { max-width: 100%; overflow-wrap: anywhere; }
+      .qr-camera-stage { min-height: 210px; }
+      .scan-bar { flex-wrap: wrap; gap: 0.6rem; }
+    }
   </style>
 </head>
 <body>
@@ -129,26 +195,28 @@
     <div class="card" style="margin-bottom:1.5rem;">
       <div class="card-title">Sale Details</div>
 
-      <!-- Tabs -->
+      <!-- 3 Tabs -->
       <div class="scanner-tabs">
-        <button class="s-tab active" id="tabScanBtn" onclick="switchTab('scan')">📷 Scan QR Code</button>
-        <button class="s-tab" id="tabManualBtn" onclick="switchTab('manual')">⌨️ Manual Entry</button>
+        <button class="s-tab active" id="tabScanBtn"   onclick="switchTab('scan')">📷 Scan QR Code</button>
+        <button class="s-tab"        id="tabUploadBtn" onclick="switchTab('upload')">🖼️ Upload Image</button>
+        <button class="s-tab"        id="tabManualBtn" onclick="switchTab('manual')">⌨️ Manual Entry</button>
       </div>
 
       <!-- ===== SCAN TAB ===== -->
-      <div id="scanPanel">
-        <!-- Camera Box -->
+      <div class="tab-panel active" id="scanPanel">
         <div class="qr-box" id="qrBox">
-          <video id="qrVideo" autoplay playsinline muted></video>
-          <canvas id="qrCanvas"></canvas>
-          <div class="scan-overlay">
-            <div class="scan-frame">
-              <div class="scan-line"></div>
-              <div class="sc tl"></div><div class="sc tr"></div>
-              <div class="sc bl"></div><div class="sc br"></div>
+          <div class="qr-camera-stage">
+            <video id="qrVideo" autoplay playsinline muted></video>
+            <canvas id="qrCanvas"></canvas>
+            <div class="scan-overlay">
+              <div class="scan-frame">
+                <div class="scan-line"></div>
+                <div class="sc tl"></div><div class="sc tr"></div>
+                <div class="sc bl"></div><div class="sc br"></div>
+              </div>
             </div>
+            <div class="qr-flash" id="qrFlash"></div>
           </div>
-          <div class="qr-flash" id="qrFlash"></div>
           <div class="scan-bar">
             <div class="scan-bar-text">
               <div class="live-dot" id="liveDot"></div>
@@ -162,14 +230,12 @@
           <button class="btn btn-outline" id="startBtn" onclick="startScanner()">▶ Start Camera</button>
         </div>
 
-        <!-- Scanned SN Result -->
-        <div class="scanned-result" id="scannedResult">
+        <div class="scanned-result" id="scannedResultScan">
           <div class="sr-label">✅ QR Code Detected!</div>
           <div class="sr-value" id="scannedSNText">—</div>
           <div class="sr-sub">Enter the Consumer Code below and click Complete Sale.</div>
         </div>
 
-        <!-- Consumer code for scan tab -->
         <div class="form-row single" style="margin-top:1.2rem;">
           <div class="form-group">
             <label>Consumer Code</label>
@@ -182,12 +248,58 @@
             <span class="btn-label">⛓️ Complete Sale</span>
             <div class="loader"></div>
           </button>
-          <button class="btn btn-outline" onclick="resetAll()">🔄 Reset</button>
+          <button class="btn btn-outline" onclick="resetScan()">🔄 Reset</button>
+        </div>
+      </div>
+
+      <!-- ===== UPLOAD TAB ===== -->
+      <div class="tab-panel" id="uploadPanel">
+        <input type="file" id="uploadImageInput" accept="image/*" style="display:none;" onchange="handleUploadedImage(event)">
+
+        <div class="upload-drop-zone" id="uploadZone" onclick="document.getElementById('uploadImageInput').click()">
+          <div class="upload-icon">🖼️</div>
+          <div class="upload-title">Click or Drag & Drop Image</div>
+          <div class="upload-sub">Upload product photo or QR code image (JPG, PNG, WEBP)</div>
+        </div>
+
+        <div class="upload-preview-wrap" id="uploadPreviewWrap">
+          <img id="uploadPreviewImg" src="" alt="Preview"/>
+          <canvas id="uploadCanvas" style="display:none;"></canvas>
+        </div>
+
+        <div class="upload-status" id="uploadStatus">
+          <div class="live-dot on"></div>
+          <span id="uploadStatusText">Processing image...</span>
+        </div>
+
+        <div class="scanned-result" id="scannedResultUpload">
+          <div class="sr-label">✅ QR Code Detected in Image!</div>
+          <div class="sr-value" id="uploadSNText">—</div>
+          <div class="sr-sub">Enter the Consumer Code below and click Complete Sale.</div>
+        </div>
+
+        <div class="form-row single" style="margin-top:1.2rem;">
+          <div class="form-group">
+            <label>Product Serial Number (SN)</label>
+            <input type="text" id="snUpload" placeholder="Enter Product SN if not auto-filled"/>
+          </div>
+          <div class="form-group">
+            <label>Consumer Code</label>
+            <input type="text" id="consumerCodeUpload" placeholder="Enter Consumer Code"/>
+          </div>
+        </div>
+
+        <div style="margin-top:1rem;display:flex;gap:1rem;flex-wrap:wrap;">
+          <button class="btn btn-success" id="sellBtnUpload" onclick="doSellUpload()" style="display:none;">
+            <span class="btn-label">⛓️ Complete Sale on Blockchain</span>
+            <div class="loader"></div>
+          </button>
+          <button class="btn btn-outline" onclick="resetUpload()">🔄 Reset</button>
         </div>
       </div>
 
       <!-- ===== MANUAL TAB ===== -->
-      <div class="manual-panel" id="manualPanel">
+      <div class="tab-panel" id="manualPanel">
         <div class="form-row">
           <div class="form-group">
             <label>Product Serial Number (SN)</label>
@@ -235,13 +347,13 @@
 <script>
   // ======= TOAST =======
   function toast(msg, type='info') {
-    const icons = {success:'✅', error:'❌', info:'ℹ️'};
+    const icons = {success:'✅', error:'❌', info:'ℹ️', warning:'⚠️'};
     const t = document.getElementById('toastContainer');
     const el = document.createElement('div');
     el.className = `toast ${type}`;
-    el.innerHTML = `<span class="toast-icon">${icons[type]}</span><span>${msg}</span>`;
+    el.innerHTML = `<span class="toast-icon">${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
     t.appendChild(el);
-    setTimeout(() => el.remove(), 4000);
+    setTimeout(() => el.remove(), 4500);
   }
 
   // ======= WALLET =======
@@ -262,45 +374,49 @@
   }
 
   // ======= TABS =======
+  let currentTab = 'scan';
+
   function switchTab(tab) {
-    if (tab === 'manual' && scanActive) stopScanner();
-    document.getElementById('tabScanBtn').classList.toggle('active', tab==='scan');
-    document.getElementById('tabManualBtn').classList.toggle('active', tab==='manual');
-    document.getElementById('scanPanel').style.display = tab==='scan' ? 'block' : 'none';
-    document.getElementById('manualPanel').classList.toggle('show', tab==='manual');
+    if (tab !== 'scan' && scanActive) stopScanner();
+    currentTab = tab;
+
+    document.querySelectorAll('.s-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+
+    if (tab === 'scan') {
+      document.getElementById('tabScanBtn').classList.add('active');
+      document.getElementById('scanPanel').classList.add('active');
+    } else if (tab === 'upload') {
+      document.getElementById('tabUploadBtn').classList.add('active');
+      document.getElementById('uploadPanel').classList.add('active');
+    } else {
+      document.getElementById('tabManualBtn').classList.add('active');
+      document.getElementById('manualPanel').classList.add('active');
+    }
   }
 
-  // ======= QR SCANNER (using jsQR) =======
-  let videoStream = null;
-  let scanActive = false;
-  let rafId = null;
-  let detectedSN = null;
+  // ======= QR SCANNER =======
+  let videoStream = null, scanActive = false, rafId = null, detectedSN = null;
 
   async function startScanner() {
     try {
       videoStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment', width: {ideal:1280}, height: {ideal:720} }
       });
-
       const video = document.getElementById('qrVideo');
       video.srcObject = videoStream;
-
-      document.getElementById('qrBox').classList.add('show');
       document.getElementById('startBtn').style.display = 'none';
       document.getElementById('stopBtn').style.display = 'inline-block';
       document.getElementById('liveDot').classList.add('on');
       document.getElementById('scanMsg').textContent = 'Scanning... point camera at QR code';
-
       video.onloadedmetadata = () => {
         video.play();
         scanActive = true;
         requestAnimationFrame(decode);
       };
-
       toast('Camera on — align QR code in the green frame', 'info');
-
     } catch(err) {
-      toast('Camera denied. Switch to Manual Entry tab.', 'error');
+      toast('Camera denied. Use Upload Image or Manual Entry tab.', 'error');
     }
   }
 
@@ -308,10 +424,8 @@
     scanActive = false;
     if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
     if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
-
     const video = document.getElementById('qrVideo');
     video.srcObject = null;
-    document.getElementById('qrBox').classList.remove('show');
     document.getElementById('startBtn').style.display = 'inline-flex';
     document.getElementById('stopBtn').style.display = 'none';
     document.getElementById('liveDot').classList.remove('on');
@@ -320,109 +434,189 @@
 
   function decode() {
     if (!scanActive) return;
-
     const video = document.getElementById('qrVideo');
     const canvas = document.getElementById('qrCanvas');
-
     if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0) {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-      // jsQR decodes QR from frame
-      const result = jsQR(imageData.data, imageData.width, imageData.height, {
-        inversionAttempts: 'dontInvert'
-      });
-
+      const result = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
       if (result && result.data) {
         onQRFound(result.data);
-        return; // Stop scanning loop
+        return;
       }
     }
-
     rafId = requestAnimationFrame(decode);
   }
 
   function onQRFound(rawData) {
     stopScanner();
-
-    // Flash green
     const flash = document.getElementById('qrFlash');
     flash.classList.add('show');
     setTimeout(() => flash.classList.remove('show'), 600);
 
-    // Parse QR — try JSON first (our format: {sn, name, ...})
     let sn = rawData;
     try {
       const parsed = JSON.parse(rawData);
       if (parsed.sn) sn = parsed.sn;
       else if (parsed.serial) sn = parsed.serial;
-    } catch(e) {
-      sn = rawData.trim(); // raw SN string
-    }
+    } catch(e) { sn = rawData.trim(); }
 
     detectedSN = sn;
-
     document.getElementById('scannedSNText').textContent = 'SN: ' + sn;
-    document.getElementById('scannedResult').classList.add('show');
+    document.getElementById('scannedResultScan').classList.add('show');
     document.getElementById('scanMsg').textContent = '✅ QR Decoded — SN: ' + sn;
-
     toast('✅ QR Scanned! SN: ' + sn, 'success');
   }
 
-  function resetAll() {
+  function resetScan() {
     detectedSN = null;
-    document.getElementById('scannedResult').classList.remove('show');
+    document.getElementById('scannedResultScan').classList.remove('show');
     document.getElementById('consumerCodeScan').value = '';
     document.getElementById('successBox').classList.remove('show');
     document.getElementById('scanMsg').textContent = 'Camera not started';
-    document.getElementById('startBtn').style.display = 'inline-flex';
     stopScanner();
   }
 
-  // ======= BLOCKCHAIN / CONTRACT =======
-  async function callContract(productSN, consumerCode, btnId) {
-  const btn = document.getElementById(btnId);
-  btn.classList.add('loading');
-  btn.disabled = true;
+  // ======= UPLOAD IMAGE =======
+  let uploadedSN = null;
 
-  try {
-    const res = await fetch(
-      'http://localhost:5000/api/seller/sell',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-user-role': 'seller'
-        },
-        body: JSON.stringify({
-          _productSN: productSN,
-          _consumerCode: consumerCode
-        })
+  function handleUploadedImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      // Show preview
+      const previewWrap = document.getElementById('uploadPreviewWrap');
+      const previewImg  = document.getElementById('uploadPreviewImg');
+      previewImg.src = e.target.result;
+      previewWrap.style.display = 'block';
+
+      // Show status
+      const statusDiv = document.getElementById('uploadStatus');
+      statusDiv.classList.add('show');
+      document.getElementById('uploadStatusText').textContent = 'Scanning for QR code in image...';
+
+      // Hide previous results
+      document.getElementById('scannedResultUpload').classList.remove('show');
+      document.getElementById('sellBtnUpload').style.display = 'inline-flex';
+      uploadedSN = null;
+
+      // Wait for image to load then scan
+      previewImg.onload = function() {
+        const canvas = document.getElementById('uploadCanvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        canvas.width  = previewImg.naturalWidth;
+        canvas.height = previewImg.naturalHeight;
+        ctx.drawImage(previewImg, 0, 0);
+
+        let imageData;
+        try { imageData = ctx.getImageData(0, 0, canvas.width, canvas.height); }
+        catch(err) { toast('Could not read image data.', 'error'); return; }
+
+        const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'attemptBoth' });
+
+        if (code && code.data) {
+          let sn = code.data;
+          try {
+            const parsed = JSON.parse(code.data);
+            if (parsed.sn) sn = parsed.sn;
+            else if (parsed.serial) sn = parsed.serial;
+          } catch(e) { sn = code.data.trim(); }
+
+          uploadedSN = sn;
+          document.getElementById('uploadSNText').textContent = 'SN: ' + sn;
+          document.getElementById('scannedResultUpload').classList.add('show');
+          document.getElementById('uploadStatusText').textContent = '✅ QR code found!';
+          toast('✅ QR code detected! SN: ' + sn, 'success');
+          document.getElementById('snUpload').value = sn;
+        } else {
+          document.getElementById('uploadStatusText').textContent = '❌ No QR code found. You can enter SN manually below.';
+          document.getElementById('uploadSNText').textContent = 'SN: —';
+          document.getElementById('scannedResultUpload').classList.remove('show');
+          toast('No QR code found in image. You can enter SN manually.', 'warning');
+          document.getElementById('snUpload').value = '';
+        }
+      };
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function resetUpload() {
+    uploadedSN = null;
+    document.getElementById('uploadPreviewWrap').style.display = 'none';
+    document.getElementById('uploadPreviewImg').src = '';
+    document.getElementById('uploadStatus').classList.remove('show');
+    document.getElementById('scannedResultUpload').classList.remove('show');
+    document.getElementById('sellBtnUpload').style.display = 'none';
+    document.getElementById('consumerCodeUpload').value = '';
+    document.getElementById('uploadImageInput').value = '';
+    document.getElementById('successBox').classList.remove('show');
+  }
+
+  // Drag & Drop support
+  document.addEventListener('DOMContentLoaded', () => {
+    const zone = document.getElementById('uploadZone');
+    if (!zone) return;
+    zone.addEventListener('dragover',  e => { e.preventDefault(); zone.style.background = 'rgba(0,229,160,0.14)'; });
+    zone.addEventListener('dragleave', () => { zone.style.background = ''; });
+    zone.addEventListener('drop', e => {
+      e.preventDefault(); zone.style.background = '';
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        handleUploadedImage({ target: { files: e.dataTransfer.files } });
+      } else {
+        toast('Please drop an image file.', 'error');
       }
-    );
+    });
+  });
 
-    const data = await res.json();
+  // ======= BLOCKCHAIN (Direct Smart Contract) =======
+  async function callContract(productSN, consumerCode, btnId) {
+    const btn = document.getElementById(btnId);
+    btn.classList.add('loading');
+    btn.disabled = true;
 
-    if (!res.ok) {
-      toast('Error: ' + (data.error || 'Unknown'), 'error');
-    } else {
-      document.getElementById('txHash').textContent = 'TX: ' + (data.txHash || 'confirmed');
+    if (typeof window.web3 === 'undefined' || typeof window.TruffleContract === 'undefined') {
+      toast('Web3 or TruffleContract not loaded!', 'error');
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      return;
+    }
+
+    try {
+      // Load contract artifact
+      const artifact = await fetch('js/product.json').then(r => r.json()).catch(() => null);
+      if (!artifact) throw new Error('product.json not found');
+      const Product = window.TruffleContract(artifact);
+      Product.setProvider(window.web3.currentProvider);
+
+      // Get accounts
+      const accounts = await window.web3.eth.getAccounts();
+      if (!accounts || !accounts.length) throw new Error('No wallet account found');
+      const account = accounts[0];
+
+      // Call contract
+      const instance = await Product.deployed();
+      const tx = await instance.sellerSellProduct(
+        window.web3.utils ? window.web3.utils.fromAscii(productSN) : window.web3.fromAscii(productSN),
+        window.web3.utils ? window.web3.utils.fromAscii(consumerCode) : window.web3.fromAscii(consumerCode),
+        { from: account }
+      );
+      document.getElementById('txHash').textContent = 'TX: ' + (tx.tx || tx.transactionHash || 'confirmed');
       document.getElementById('successBox').classList.add('show');
       toast('Sale complete! Product transferred 🎉', 'success');
       document.getElementById('successBox').scrollIntoView({ behavior:'smooth' });
+    } catch(err) {
+      toast('Blockchain transaction failed: ' + (err.message || err), 'error');
     }
 
-  } catch(err) {
-    toast('Backend not reachable! Is server running on port 5000?', 'error');
+    btn.classList.remove('loading');
+    btn.disabled = false;
   }
-
-  btn.classList.remove('loading');
-  btn.disabled = false;
-}
 
   async function doSellScan() {
     if (!detectedSN) { toast('Scan a QR code first!', 'error'); return; }
@@ -431,8 +625,19 @@
     await callContract(detectedSN, code, 'sellBtnScan');
   }
 
+  async function doSellUpload() {
+    let sn = uploadedSN;
+    if (!sn) {
+      sn = document.getElementById('snUpload').value.trim();
+    }
+    if (!sn) { toast('Enter Product SN (or scan/upload again).', 'error'); return; }
+    const code = document.getElementById('consumerCodeUpload').value.trim();
+    if (!code) { toast('Enter the Consumer Code.', 'error'); return; }
+    await callContract(sn, code, 'sellBtnUpload');
+  }
+
   async function doSellManual() {
-    const sn = document.getElementById('snManual').value.trim();
+    const sn   = document.getElementById('snManual').value.trim();
     const code = document.getElementById('codeManual').value.trim();
     if (!sn || !code) { toast('Fill in both fields.', 'error'); return; }
     await callContract(sn, code, 'sellBtnManual');

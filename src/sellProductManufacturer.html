@@ -7,96 +7,180 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/shared.css">
-  <!-- jsQR library for QR code scanning -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
   <style>
+    /* ===== BLOBS ===== */
     .blob { position: fixed; border-radius: 50%; filter: blur(130px); opacity: 0.1; pointer-events: none; z-index: 0; }
     .blob-1 { width: 450px; height: 450px; background: #7c5cfc; top: -100px; right: -80px; }
     .blob-2 { width: 300px; height: 300px; background: #00e5a0; bottom: 0; left: -60px; }
 
-    .transfer-visual {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 1rem;
-      padding: 1.5rem;
-      background: var(--surface2);
-      border-radius: 14px;
-      margin-bottom: 1.5rem;
-    }
-    .transfer-node {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.4rem;
-    }
-    .t-icon {
-      width: 52px; height: 52px;
-      border-radius: 14px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.4rem;
-    }
-    .t-mfg { background: rgba(124,92,252,0.15); border: 1px solid rgba(124,92,252,0.3); }
-    .t-seller { background: rgba(0,229,160,0.12); border: 1px solid rgba(0,229,160,0.25); }
-    .t-label { font-size: 0.75rem; color: var(--muted); font-weight: 600; }
-    .transfer-arrow {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.3rem;
-    }
-    .t-line {
-      width: 100%;
-      height: 2px;
-      background: linear-gradient(90deg, rgba(124,92,252,0.4), rgba(0,229,160,0.4));
-      border-radius: 2px;
-      position: relative;
-    }
-    .t-line::after {
-      content: '▶';
-      position: absolute;
-      right: -6px;
-      top: -8px;
-      font-size: 0.7rem;
-      color: var(--accent);
-    }
+    /* ===== TRANSFER VISUAL ===== */
+    .transfer-visual { display: flex; align-items: center; justify-content: center; gap: 1rem; padding: 1.5rem; background: var(--surface2); border-radius: 14px; margin-bottom: 1.5rem; }
+    .transfer-node { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
+    .t-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+    .t-mfg    { background: rgba(124,92,252,0.15); border: 1px solid rgba(124,92,252,0.3); }
+    .t-seller { background: rgba(0,229,160,0.12);  border: 1px solid rgba(0,229,160,0.25); }
+    .t-label  { font-size: 0.75rem; color: var(--muted); font-weight: 600; }
+    .transfer-arrow { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.3rem; }
+    .t-line { width: 100%; height: 2px; background: linear-gradient(90deg, rgba(124,92,252,0.4), rgba(0,229,160,0.4)); border-radius: 2px; position: relative; }
+    .t-line::after { content: '▶'; position: absolute; right: -6px; top: -8px; font-size: 0.7rem; color: var(--accent); }
     .t-desc { font-size: 0.7rem; color: var(--muted); }
 
-    .scanner-toggle {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      margin-bottom: 1.5rem;
-    }
-    .scanner-box-sm {
-      border-radius: 14px;
+    /* ===== TABS ===== */
+    .scanner-tabs { display: flex; background: var(--surface2); border-radius: 10px; padding: 3px; gap: 3px; margin-bottom: 1.2rem; }
+    .s-tab { flex: 1; padding: 0.6rem; border: none; border-radius: 8px; background: none; color: var(--muted); font-family: var(--font-body); font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+    .s-tab.active { background: var(--surface); color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+    .s-tab:hover:not(.active) { color: var(--text); background: rgba(255,255,255,0.04); }
+
+    /* ===== TAB PANELS ===== */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; animation: fadeInTab 0.25s ease; }
+    @keyframes fadeInTab { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ===== SCANNER — BIGGER ===== */
+    .scanner-wrap {
+      border-radius: 16px;
       overflow: hidden;
       background: #000;
       position: relative;
-      display: none;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
+      /* FIXED: taller scanner area */
+      min-height: 360px;
+      border: 1px solid var(--border);
     }
-    .scanner-box-sm.show { display: block; }
-    .scanner-box-sm video { width: 100%; max-height: 260px; object-fit: cover; display: block; }
-    .scan-overlay-sm {
-      position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
-      pointer-events: none;
+    .scanner-wrap video {
+      width: 100%;
+      height: 360px;
+      object-fit: cover;
+      display: block;
     }
-    .scan-frame-sm {
-      width: 150px; height: 150px;
-      border: 2px solid var(--accent);
-      border-radius: 12px;
-      box-shadow: 0 0 0 2000px rgba(0,0,0,0.45);
-    }
-    .scan-line-sm {
-      position: absolute; top: 0; left: 0; right: 0; height: 2px;
-      background: linear-gradient(90deg, transparent, var(--accent), transparent);
-      animation: scanMove 1.8s linear infinite;
-    }
-    @keyframes scanMove { 0% { top: 0; } 100% { top: calc(100% - 2px); } }
+    #qrCanvas { display: none; }
 
+    /* overlay with bigger frame */
+    .scan-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+    .scan-frame {
+      width: 200px;
+      height: 200px;
+      border: 2px solid var(--accent);
+      border-radius: 16px;
+      box-shadow: 0 0 0 2000px rgba(0,0,0,0.50);
+      position: relative;
+    }
+    /* corner accents */
+    .scan-frame::before, .scan-frame::after {
+      content: '';
+      position: absolute;
+      width: 20px; height: 20px;
+      border-color: var(--accent);
+      border-style: solid;
+    }
+    .scan-frame::before { top: -2px; left: -2px; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
+    .scan-frame::after  { bottom: -2px; right: -2px; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+    .scan-line { position: absolute; top: 0; left: 4px; right: 4px; height: 2px; background: linear-gradient(90deg, transparent, var(--accent), transparent); border-radius: 2px; animation: scanMove 2s ease-in-out infinite; }
+    @keyframes scanMove { 0%,100% { top: 4px; } 50% { top: calc(100% - 6px); } }
+
+    /* idle placeholder when camera is off */
+    .scanner-idle {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      background: #0a0a0f;
+    }
+    .scanner-idle .idle-icon { font-size: 3rem; opacity: 0.3; }
+    .scanner-idle .idle-text { font-size: 0.85rem; color: var(--muted); text-align: center; max-width: 200px; line-height: 1.5; }
+    .scanner-idle.hidden { display: none; }
+
+    .scan-statusbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.75rem 1rem;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+    }
+    .scan-bar-left { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: var(--muted); }
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #555; }
+    .live-dot.on { background: var(--accent); animation: pulse 1.2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,229,160,0.4); } 50% { box-shadow: 0 0 0 5px rgba(0,229,160,0); } }
+
+    /* ===== UPLOAD ZONE ===== */
+    .upload-drop-zone {
+      border: 2px dashed rgba(124,92,252,0.4);
+      border-radius: 16px;
+      padding: 2rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(124,92,252,0.04);
+      transition: all 0.2s;
+      margin-bottom: 1rem;
+    }
+    .upload-drop-zone:hover { background: rgba(124,92,252,0.10); border-color: rgba(124,92,252,0.7); }
+    .upload-drop-zone.dragover { background: rgba(124,92,252,0.15); border-color: var(--accent2); }
+    .upload-icon  { font-size: 2.2rem; margin-bottom: 0.5rem; }
+    .upload-title { font-family: 'Syne',sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .upload-sub   { font-size: 0.8rem; color: var(--muted); }
+
+    .upload-preview-wrap { margin-bottom: 1rem; display: none; border-radius: 14px; overflow: hidden; border: 1px solid var(--border); position: relative; }
+    .upload-preview-wrap img { width: 100%; max-height: 260px; object-fit: contain; display: block; background: #0a0a0f; }
+    .upload-preview-badge {
+      position: absolute; top: 10px; right: 10px;
+      background: rgba(0,229,160,0.9); color: #000;
+      font-size: 0.72rem; font-weight: 700;
+      padding: 0.25rem 0.6rem; border-radius: 20px;
+      display: none;
+    }
+    .upload-preview-badge.show { display: block; }
+
+    .upload-status {
+      display: none; align-items: center; gap: 0.5rem;
+      font-size: 0.82rem; color: var(--muted);
+      margin-bottom: 0.75rem;
+      padding: 0.6rem 0.8rem;
+      background: var(--surface2);
+      border-radius: 8px;
+    }
+    .upload-status.show { display: flex; }
+
+    /* ===== SCANNED RESULT ===== */
+    .scanned-result {
+      display: none;
+      margin-top: 1rem;
+      background: rgba(0,229,160,0.07);
+      border: 1px solid rgba(0,229,160,0.25);
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
+    }
+    .scanned-result.show { display: block; animation: fadeInTab 0.3s ease; }
+    .scanned-result .sr-label { font-size: 0.72rem; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.4rem; }
+    .scanned-result .sr-value { font-family: monospace; font-size: 0.95rem; word-break: break-all; color: var(--text); }
+    .scanned-result .sr-sub { font-size: 0.75rem; color: var(--muted); margin-top: 0.4rem; }
+
+    /* ===== WALLET BAR ===== */
+    .wallet-bar { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 0.85rem 1.2rem; display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; font-size: 0.82rem; gap: 0.5rem; flex-wrap: wrap; }
+    .wallet-status { display: flex; align-items: center; gap: 0.5rem; }
+    .wallet-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+    .wallet-bar .label { color: var(--muted); white-space: nowrap; }
+    .wallet-bar .addr { font-family: monospace; color: var(--accent); font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 260px; }
+
+    /* ===== FORM SECTION LABEL ===== */
+    .section-divider {
+      display: flex; align-items: center; gap: 0.75rem;
+      margin: 1.2rem 0 0.8rem;
+      font-size: 0.72rem; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .section-divider::before, .section-divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
+    /* ===== ACTION ROW ===== */
+    .action-row { margin-top: 1.2rem; display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
+
+    /* ===== SUCCESS ===== */
     .success-transfer {
       display: none;
       background: rgba(0,229,160,0.07);
@@ -105,25 +189,26 @@
       padding: 2rem;
       margin-top: 1.5rem;
       text-align: center;
-      animation: fadeUp 0.4s ease;
     }
-    .success-transfer.show { display: block; }
-    @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; } }
-    .success-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+    .success-transfer.show { display: block; animation: fadeUp 0.4s ease; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .success-icon  { font-size: 2.5rem; margin-bottom: 0.75rem; }
     .success-title { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; color: var(--accent); }
-    .success-sub { font-size: 0.85rem; color: var(--muted); margin-top: 0.4rem; }
-    .tx-hash { font-family: monospace; font-size: 0.75rem; color: var(--accent2); background: rgba(124,92,252,0.1); padding: 0.4rem 0.8rem; border-radius: 6px; margin-top: 0.75rem; display: inline-block; }
+    .success-sub   { font-size: 0.85rem; color: var(--muted); margin-top: 0.4rem; }
+    .tx-hash { font-family: monospace; font-size: 0.75rem; color: var(--accent2); background: rgba(124,92,252,0.1); padding: 0.4rem 0.8rem; border-radius: 6px; margin-top: 0.75rem; display: inline-block; word-break: break-all; }
 
-    .wallet-bar {
-      background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 12px; padding: 0.85rem 1.2rem;
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 2rem; font-size: 0.82rem;
-    }
-    .wallet-status { display: flex; align-items: center; gap: 0.5rem; }
-    .wallet-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
-    .wallet-bar .label { color: var(--muted); }
-    .wallet-bar .addr { font-family: monospace; color: var(--accent); font-size: 0.8rem; }
+    /* ===== ABOUT CARD ===== */
+    .info-list { list-style: none; padding: 0; margin: 0.5rem 0 0; }
+    .info-list li { display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.84rem; color: var(--muted); padding: 0.45rem 0; border-bottom: 1px solid var(--border); line-height: 1.5; }
+    .info-list li:last-child { border-bottom: none; }
+    .info-list li .i-icon { font-size: 1rem; flex-shrink: 0; margin-top: 0.05rem; }
+
+    /* spinner on button */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn.loading .btn-label { opacity: 0; }
+    .btn .loader { display: none; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.2); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; position: absolute; }
+    .btn.loading .loader { display: block; }
+    .btn { position: relative; }
   </style>
 </head>
 <body>
@@ -131,10 +216,7 @@
   <div class="blob blob-2"></div>
 
   <nav class="main-nav">
-    <a href="index.html" class="nav-brand">
-      <div class="nav-dot"></div>
-      ChainVerify
-    </a>
+    <a href="index.html" class="nav-brand"><div class="nav-dot"></div>ChainVerify</a>
     <div class="nav-links">
       <a href="manufacturer.html" class="nav-back">← Manufacturer Panel</a>
       <a href="addProduct.html">Add Product</a>
@@ -166,6 +248,7 @@
       </div>
     </div>
 
+    <!-- Wallet Bar -->
     <div class="wallet-bar">
       <div class="wallet-status">
         <div class="wallet-dot"></div>
@@ -175,47 +258,141 @@
       <button class="copy-btn" onclick="copyAddr()">Copy</button>
     </div>
 
+    <!-- Main Card -->
     <div class="card" style="margin-bottom:1.5rem;">
-      <div class="card-title">Product & Seller Details</div>
+      <div class="card-title">Product &amp; Seller Details</div>
 
-      <!-- QR Scanner Toggle -->
-      <div class="scanner-toggle">
-        <button class="btn btn-outline" onclick="toggleScanner()" id="scanToggleBtn">
-          📷 Scan QR Code
-        </button>
-        <span style="font-size:0.82rem;color:var(--muted);">or enter manually below</span>
+      <!-- Tabs -->
+      <div class="scanner-tabs">
+        <button class="s-tab active" id="tabScanBtn"   onclick="switchTab('scan')">📷 Scan QR Code</button>
+        <button class="s-tab"        id="tabUploadBtn" onclick="switchTab('upload')">🖼️ Upload Image</button>
+        <button class="s-tab"        id="tabManualBtn" onclick="switchTab('manual')">⌨️ Manual Entry</button>
       </div>
 
-      <div class="scanner-box-sm" id="scannerBox">
-        <video id="video" autoplay playsinline muted></video>
-        <div class="scan-overlay-sm">
-          <div class="scan-frame-sm">
-            <div class="scan-line-sm"></div>
+      <!-- ===== SCAN TAB ===== -->
+      <div class="tab-panel active" id="scanPanel">
+
+        <!-- Big scanner area -->
+        <div class="scanner-wrap" id="scannerBox">
+          <!-- idle state shown before camera starts -->
+          <div class="scanner-idle" id="scannerIdle">
+            <div class="idle-icon">📷</div>
+            <div class="idle-text">Camera is off. Click "Start Camera" to begin scanning.</div>
+          </div>
+
+          <video id="video" autoplay playsinline muted style="display:none;"></video>
+          <canvas id="qrCanvas"></canvas>
+
+          <div class="scan-overlay">
+            <div class="scan-frame">
+              <div class="scan-line"></div>
+            </div>
+          </div>
+
+          <div class="scan-statusbar">
+            <div class="scan-bar-left">
+              <div class="live-dot" id="liveDot"></div>
+              <span id="scanMsg">Camera not started</span>
+            </div>
+            <button class="copy-btn" id="stopBtn" style="display:none;" onclick="stopScanner()">⏹ Stop</button>
           </div>
         </div>
+
+        <div style="display:flex;gap:0.75rem;margin-bottom:1rem;">
+          <button class="btn btn-outline" id="startBtn" onclick="startScanner()">▶ Start Camera</button>
+        </div>
+
+        <div class="scanned-result" id="scannedResultScan">
+          <div class="sr-label">✅ QR Code Detected!</div>
+          <div class="sr-value" id="scannedSNText">—</div>
+          <div class="sr-sub">Enter the Seller Code below and click Transfer on Blockchain.</div>
+        </div>
+
+        <div class="section-divider">Seller Details</div>
+        <div class="form-row single">
+          <div class="form-group">
+            <label>Seller Code</label>
+            <input type="text" id="sellerCodeScan" placeholder="e.g. SEL-001"/>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <button class="btn btn-primary" id="sellBtnScan" onclick="doSellScan()">
+            <span class="btn-label">⛓️ Transfer on Blockchain</span>
+            <div class="loader"></div>
+          </button>
+          <button class="btn btn-outline" onclick="resetScan()">🔄 Reset</button>
+        </div>
       </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label>Product Serial Number (SN)</label>
-          <input type="text" id="productSN" placeholder="e.g. SN-2026-00123"/>
+      <!-- ===== UPLOAD TAB ===== -->
+      <div class="tab-panel" id="uploadPanel">
+        <input type="file" id="uploadImageInput" accept="image/*" style="display:none;" onchange="handleUploadedImage(event)">
+
+        <div class="upload-drop-zone" id="uploadZone" onclick="document.getElementById('uploadImageInput').click()">
+          <div class="upload-icon">🖼️</div>
+          <div class="upload-title">Click or Drag &amp; Drop Image</div>
+          <div class="upload-sub">Upload product photo or QR code image (JPG, PNG, WEBP)</div>
         </div>
-        <div class="form-group">
-          <label>Seller Code</label>
-          <input type="text" id="sellerCode" placeholder="e.g. SEL-001"/>
+
+        <div class="upload-preview-wrap" id="uploadPreviewWrap">
+          <img id="uploadPreviewImg" src="" alt="Preview"/>
+          <canvas id="uploadCanvas" style="display:none;"></canvas>
+          <div class="upload-preview-badge" id="uploadQRBadge">✅ QR Found</div>
+        </div>
+
+        <div class="upload-status" id="uploadStatus">
+          <div class="live-dot on" id="uploadDot"></div>
+          <span id="uploadStatusText">Processing image...</span>
+        </div>
+
+        <div class="scanned-result" id="scannedResultUpload">
+          <div class="sr-label">✅ QR Code Detected in Image!</div>
+          <div class="sr-value" id="uploadSNText">—</div>
+          <div class="sr-sub">Enter the Seller Code below and click Transfer on Blockchain.</div>
+        </div>
+
+        <div class="section-divider">Seller Details</div>
+        <div class="form-row single">
+          <div class="form-group">
+            <label>Seller Code</label>
+            <input type="text" id="sellerCodeUpload" placeholder="e.g. SEL-001"/>
+          </div>
+        </div>
+
+        <!-- FIXED: Button is always visible, disabled state handled in JS -->
+        <div class="action-row">
+          <button class="btn btn-primary" id="sellBtnUpload" onclick="doSellUpload()">
+            <span class="btn-label">⛓️ Transfer on Blockchain</span>
+            <div class="loader"></div>
+          </button>
+          <button class="btn btn-outline" onclick="resetUpload()">🔄 Reset</button>
         </div>
       </div>
 
-      <div style="margin-top:1.5rem;display:flex;gap:1rem;flex-wrap:wrap;">
-        <button class="btn btn-primary" id="sellBtn" onclick="sellProduct()">
-          <span class="btn-label">⛓️ Transfer on Blockchain</span>
-          <div class="loader"></div>
-        </button>
-        <button class="btn btn-outline" onclick="clearForm()">Clear</button>
+      <!-- ===== MANUAL TAB ===== -->
+      <div class="tab-panel" id="manualPanel">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Product Serial Number (SN)</label>
+            <input type="text" id="snManual" placeholder="e.g. SN-2026-00123"/>
+          </div>
+          <div class="form-group">
+            <label>Seller Code</label>
+            <input type="text" id="sellerCodeManual" placeholder="e.g. SEL-001"/>
+          </div>
+        </div>
+        <div class="action-row">
+          <button class="btn btn-primary" id="sellBtnManual" onclick="doSellManual()">
+            <span class="btn-label">⛓️ Transfer on Blockchain</span>
+            <div class="loader"></div>
+          </button>
+          <button class="btn btn-outline" onclick="clearManual()">Clear</button>
+        </div>
       </div>
     </div>
 
-    <!-- Success -->
+    <!-- Success Box -->
     <div class="success-transfer" id="successBox">
       <div class="success-icon">✅</div>
       <div class="success-title">Transfer Successful!</div>
@@ -223,11 +400,15 @@
       <div class="tx-hash" id="txHash">TX: 0x...generating</div>
     </div>
 
+    <!-- About Card (improved) -->
     <div class="card">
       <div class="card-title">About This Transfer</div>
-      <p style="font-size:0.88rem;color:var(--muted);line-height:1.7;">
-        This action permanently records the product transfer from your manufacturer account to the seller's account on the Ethereum blockchain. Once confirmed, the seller can then sell the product to consumers. The transfer is irreversible and publicly verifiable.
-      </p>
+      <ul class="info-list">
+        <li><span class="i-icon">⛓️</span>This action permanently records the product transfer from your manufacturer account to the seller's account on the Ethereum blockchain.</li>
+        <li><span class="i-icon">🔒</span>Once confirmed, the seller can then sell the product to consumers. The transfer is irreversible and publicly verifiable.</li>
+        <li><span class="i-icon">📷</span>You can scan the product QR code directly, upload a photo, or enter the serial number manually.</li>
+        <li><span class="i-icon">🛒</span>The Seller Code must match a registered seller in the ChainVerify system before transfer is allowed.</li>
+      </ul>
     </div>
   </div>
 
@@ -238,128 +419,279 @@
     <span>Developed by Shoheb, Sujal, Dhepe, Pawan | College Major Project</span>
   </footer>
 
-  <script>
-    function toast(msg, type='info') {
-      const icons={success:'✅',error:'❌',info:'ℹ️'};
-      const t=document.getElementById('toastContainer');
-      const el=document.createElement('div');
-      el.className=`toast ${type}`;
-      el.innerHTML=`<span class="toast-icon">${icons[type]}</span><span>${msg}</span>`;
-      t.appendChild(el);
-      setTimeout(()=>el.remove(),4000);
-    }
-
-    window.addEventListener('load', async () => {
-      if (window.ethereum) {
-        try {
-          const a = await ethereum.request({ method: 'eth_requestAccounts' });
-          document.getElementById('walletAddr').textContent = a[0];
-        } catch { document.getElementById('walletAddr').textContent = 'Not connected'; }
-      } else { document.getElementById('walletAddr').textContent = 'MetaMask not found'; }
-    });
-
-    function copyAddr() {
-      navigator.clipboard.writeText(document.getElementById('walletAddr').textContent);
-      toast('Address copied!', 'success');
-    }
-
-    let stream = null;
-    let scannerOpen = false;
-
-    async function toggleScanner() {
-      const box = document.getElementById('scannerBox');
-      const btn = document.getElementById('scanToggleBtn');
-      if (!scannerOpen) {
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-          document.getElementById('video').srcObject = stream;
-          box.classList.add('show');
-          btn.textContent = '⏹ Stop Scanner';
-          scannerOpen = true;
-          toast('Camera active — point at product QR code', 'info');
-        } catch { toast('Camera access denied.', 'error'); }
-      } else {
-        if (stream) stream.getTracks().forEach(t => t.stop());
-        box.classList.remove('show');
-        btn.textContent = '📷 Scan QR Code';
-        scannerOpen = false;
-      }
-    }
-
-    function clearForm() {
-      document.getElementById('productSN').value = '';
-      document.getElementById('sellerCode').value = '';
-      document.getElementById('successBox').classList.remove('show');
-    }
-
-   async function sellProduct() {
-  const sn = document.getElementById('productSN').value.trim();
-  const code = document.getElementById('sellerCode').value.trim();
-  if (!sn || !code) { toast('Please fill in both fields.', 'error'); return; }
-
-  const btn = document.getElementById('sellBtn');
-  btn.classList.add('loading'); btn.disabled = true;
-
-  try {
-    const res = await fetch('http://localhost:5000/api/manufacturer/sell', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-user-role': 'manufacturer'
-      },
-      body: JSON.stringify({
-        _productSN: sn,
-        _sellerCode: code
-      })
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      toast('Error: ' + (data.error || 'Unknown'), 'error');
-    } else {
-      document.getElementById('txHash').textContent = 'TX: ' + (data.txHash || 'confirmed');
-      document.getElementById('successBox').classList.add('show');
-      toast('Product transferred to seller! 🎉', 'success');
-      document.getElementById('successBox').scrollIntoView({ behavior: 'smooth' });
-    }
-
-  } catch (err) {
-    toast('Backend not reachable! Is server running on port 5000?', 'error');
+<script>
+  // ======= TOAST =======
+  function toast(msg, type = 'info') {
+    const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
+    const t = document.getElementById('toastContainer');
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<span class="toast-icon">${icons[type] || 'ℹ️'}</span><span>${msg}</span>`;
+    t.appendChild(el);
+    setTimeout(() => el.remove(), 4500);
   }
 
-  btn.classList.remove('loading'); btn.disabled = false;
-}
-    // --- QR code scanning logic using jsQR ---
-    // Make sure jsQR.js is loaded in your HTML
-    const video = document.getElementById('video');
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
-
-    function scanTick() {
-      if (scannerOpen && video.readyState === video.HAVE_ENOUGH_DATA) {
-        canvas.height = video.videoHeight;
-        canvas.width = video.videoWidth;
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-        if (window.jsQR) {
-          const code = jsQR(imageData.data, imageData.width, imageData.height);
-          if (code && code.data) {
-            document.getElementById('productSN').value = code.data.trim();
-            toast('QR scanned: ' + code.data, 'success');
-            toggleScanner();
-            // Optionally, auto-submit:
-            // sellProduct();
-          }
-        }
+  // ======= WALLET =======
+  window.addEventListener('load', async () => {
+    if (window.ethereum) {
+      try {
+        const a = await ethereum.request({ method: 'eth_requestAccounts' });
+        document.getElementById('walletAddr').textContent = a[0];
+      } catch {
+        document.getElementById('walletAddr').textContent = 'Not connected';
       }
-      if (scannerOpen) requestAnimationFrame(scanTick);
+    } else {
+      document.getElementById('walletAddr').textContent = 'MetaMask not found';
+    }
+  });
+
+  function copyAddr() {
+    navigator.clipboard.writeText(document.getElementById('walletAddr').textContent);
+    toast('Address copied!', 'success');
+  }
+
+  // ======= TABS =======
+  let currentTab = 'scan';
+
+  function switchTab(tab) {
+    if (tab !== 'scan' && scanActive) stopScanner();
+    currentTab = tab;
+
+    document.querySelectorAll('.s-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+
+    const map = { scan: ['tabScanBtn', 'scanPanel'], upload: ['tabUploadBtn', 'uploadPanel'], manual: ['tabManualBtn', 'manualPanel'] };
+    document.getElementById(map[tab][0]).classList.add('active');
+    document.getElementById(map[tab][1]).classList.add('active');
+  }
+
+  // ======= QR SCANNER =======
+  let stream = null, scanActive = false, rafId = null, detectedSN = null;
+
+  async function startScanner() {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+      });
+      const video = document.getElementById('video');
+      video.srcObject = stream;
+      video.style.display = 'block';
+      document.getElementById('scannerIdle').classList.add('hidden');
+      document.getElementById('startBtn').style.display = 'none';
+      document.getElementById('stopBtn').style.display = 'inline-block';
+      document.getElementById('liveDot').classList.add('on');
+      document.getElementById('scanMsg').textContent = 'Scanning… point at QR code';
+      video.onloadedmetadata = () => {
+        video.play();
+        scanActive = true;
+        requestAnimationFrame(scanTick);
+      };
+      toast('Camera on — align QR code in the green frame', 'info');
+    } catch (err) {
+      toast('Camera denied. Use Upload Image or Manual Entry tab.', 'error');
+    }
+  }
+
+  function stopScanner() {
+    scanActive = false;
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+    const video = document.getElementById('video');
+    video.srcObject = null;
+    video.style.display = 'none';
+    document.getElementById('scannerIdle').classList.remove('hidden');
+    document.getElementById('startBtn').style.display = 'inline-flex';
+    document.getElementById('stopBtn').style.display = 'none';
+    document.getElementById('liveDot').classList.remove('on');
+    document.getElementById('scanMsg').textContent = 'Camera stopped';
+  }
+
+  function scanTick() {
+    if (!scanActive) return;
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('qrCanvas');
+    if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0) {
+      canvas.width  = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+      if (code && code.data) {
+        onQRFound(code.data);
+        return;
+      }
+    }
+    rafId = requestAnimationFrame(scanTick);
+  }
+
+  function onQRFound(rawData) {
+    stopScanner();
+    let sn = rawData;
+    try {
+      const parsed = JSON.parse(rawData);
+      if (parsed.sn) sn = parsed.sn;
+      else if (parsed.serial) sn = parsed.serial;
+    } catch (e) { sn = rawData.trim(); }
+
+    detectedSN = sn;
+    document.getElementById('scannedSNText').textContent = 'SN: ' + sn;
+    document.getElementById('scannedResultScan').classList.add('show');
+    document.getElementById('scanMsg').textContent = '✅ QR Decoded — SN: ' + sn;
+    toast('✅ QR Scanned! SN: ' + sn, 'success');
+  }
+
+  function resetScan() {
+    detectedSN = null;
+    document.getElementById('scannedResultScan').classList.remove('show');
+    document.getElementById('sellerCodeScan').value = '';
+    document.getElementById('successBox').classList.remove('show');
+    stopScanner();
+  }
+
+  // ======= UPLOAD IMAGE =======
+  let uploadedSN = null;
+
+  function handleUploadedImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    uploadedSN = null;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const previewWrap = document.getElementById('uploadPreviewWrap');
+      const previewImg  = document.getElementById('uploadPreviewImg');
+      previewImg.src = e.target.result;
+      previewWrap.style.display = 'block';
+      document.getElementById('uploadQRBadge').classList.remove('show');
+
+      const statusDiv = document.getElementById('uploadStatus');
+      statusDiv.classList.add('show');
+      document.getElementById('uploadDot').classList.add('on');
+      document.getElementById('uploadStatusText').textContent = 'Scanning for QR code in image...';
+      document.getElementById('scannedResultUpload').classList.remove('show');
+
+      previewImg.onload = function () {
+        const canvas = document.getElementById('uploadCanvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        canvas.width  = previewImg.naturalWidth;
+        canvas.height = previewImg.naturalHeight;
+        ctx.drawImage(previewImg, 0, 0);
+
+        let imageData;
+        try { imageData = ctx.getImageData(0, 0, canvas.width, canvas.height); }
+        catch (err) { toast('Could not read image data.', 'error'); return; }
+
+        const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'attemptBoth' });
+
+        if (code && code.data) {
+          let sn = code.data;
+          try {
+            const parsed = JSON.parse(code.data);
+            if (parsed.sn) sn = parsed.sn;
+            else if (parsed.serial) sn = parsed.serial;
+          } catch (e) { sn = code.data.trim(); }
+
+          uploadedSN = sn;
+          document.getElementById('uploadSNText').textContent = 'SN: ' + sn;
+          document.getElementById('scannedResultUpload').classList.add('show');
+          document.getElementById('uploadQRBadge').classList.add('show');
+          document.getElementById('uploadDot').classList.remove('on');
+          document.getElementById('uploadStatusText').textContent = '✅ QR code found successfully!';
+          toast('✅ QR code detected! SN: ' + sn, 'success');
+        } else {
+          document.getElementById('uploadDot').classList.remove('on');
+          document.getElementById('uploadStatusText').textContent = '❌ No QR code found. Try another image or use Manual Entry.';
+          toast('No QR code found in image. Try Manual Entry tab.', 'warning');
+        }
+      };
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function resetUpload() {
+    uploadedSN = null;
+    document.getElementById('uploadPreviewWrap').style.display = 'none';
+    document.getElementById('uploadPreviewImg').src = '';
+    document.getElementById('uploadQRBadge').classList.remove('show');
+    document.getElementById('uploadStatus').classList.remove('show');
+    document.getElementById('scannedResultUpload').classList.remove('show');
+    document.getElementById('sellerCodeUpload').value = '';
+    document.getElementById('uploadImageInput').value = '';
+    document.getElementById('successBox').classList.remove('show');
+  }
+
+  // Drag & Drop
+  document.addEventListener('DOMContentLoaded', () => {
+    const zone = document.getElementById('uploadZone');
+    if (!zone) return;
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault(); zone.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        handleUploadedImage({ target: { files: e.dataTransfer.files } });
+      } else {
+        toast('Please drop an image file.', 'error');
+      }
+    });
+  });
+
+  // ======= BLOCKCHAIN =======
+  async function callContract(productSN, sellerCode, btnId) {
+    const btn = document.getElementById(btnId);
+    btn.classList.add('loading'); btn.disabled = true;
+
+    try {
+      const res = await fetch('http://localhost:5000/api/manufacturer/sell', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-role': 'manufacturer' },
+        body: JSON.stringify({ _productSN: productSN, _sellerCode: sellerCode })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast('Error: ' + (data.error || 'Unknown'), 'error');
+      } else {
+        document.getElementById('txHash').textContent = 'TX: ' + (data.txHash || 'confirmed');
+        document.getElementById('successBox').classList.add('show');
+        toast('Product transferred to seller! 🎉', 'success');
+        document.getElementById('successBox').scrollIntoView({ behavior: 'smooth' });
+      }
+    } catch (err) {
+      toast('Backend not reachable! Is server running on port 5000?', 'error');
     }
 
-    // Start scanning when scanner is toggled on
-    document.getElementById('scanToggleBtn').addEventListener('click', () => {
-      if (!scannerOpen) setTimeout(scanTick, 500);
-    });
-  </script>
+    btn.classList.remove('loading'); btn.disabled = false;
+  }
+
+  async function doSellScan() {
+    if (!detectedSN) { toast('Scan a QR code first!', 'error'); return; }
+    const code = document.getElementById('sellerCodeScan').value.trim();
+    if (!code) { toast('Enter the Seller Code.', 'error'); return; }
+    await callContract(detectedSN, code, 'sellBtnScan');
+  }
+
+  async function doSellUpload() {
+    if (!uploadedSN) { toast('Upload an image with a QR code first!', 'warning'); return; }
+    const code = document.getElementById('sellerCodeUpload').value.trim();
+    if (!code) { toast('Enter the Seller Code.', 'error'); return; }
+    await callContract(uploadedSN, code, 'sellBtnUpload');
+  }
+
+  async function doSellManual() {
+    const sn   = document.getElementById('snManual').value.trim();
+    const code = document.getElementById('sellerCodeManual').value.trim();
+    if (!sn || !code) { toast('Fill in both fields.', 'error'); return; }
+    await callContract(sn, code, 'sellBtnManual');
+  }
+
+  function clearManual() {
+    document.getElementById('snManual').value = '';
+    document.getElementById('sellerCodeManual').value = '';
+    document.getElementById('successBox').classList.remove('show');
+  }
+</script>
 </body>
 </html>

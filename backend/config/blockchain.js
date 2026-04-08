@@ -11,7 +11,7 @@ const web3 = new Web3(envProvider);
 // Contract ABI aur address load karo
 const abiPath = path.join(__dirname, '../../build/contracts/product.json');
 const contractABI = JSON.parse(fs.readFileSync(abiPath, 'utf8')).abi;
-const contractAddress = process.env.CONTRACT_ADDRESS || '0x1307b27CD06379d188eBEF26C09B482346b0fA39'; // <-- update to new address
+const contractAddress = process.env.CONTRACT_ADDRESS || '0x1481C7c45Bc8c98EE2c03672ECDFE7729aa282Ef'; // <-- update to new address
 
 const contractInstance = new web3.eth.Contract(contractABI, contractAddress);
 
